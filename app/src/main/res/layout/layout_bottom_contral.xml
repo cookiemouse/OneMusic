@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/dp_64"
+    android:alpha="0.7"
+    android:background="@color/colorPrimary">
+
+    <ImageView
+        android:id="@+id/iv_layout_bottom_icon"
+        android:layout_width="@dimen/dp_50"
+        android:layout_height="@dimen/dp_50"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:layout_marginStart="@dimen/dp_10"
+        app:srcCompat="@android:color/white" />
+
+    <TextView
+        android:id="@+id/tv_layout_bottom_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/iv_layout_bottom_icon"
+        android:layout_marginLeft="@dimen/dp_5"
+        android:layout_marginStart="@dimen/dp_5"
+        android:layout_toEndOf="@+id/iv_layout_bottom_icon"
+        android:layout_toRightOf="@+id/iv_layout_bottom_icon"
+        android:lines="1"
+        android:maxWidth="@dimen/dp_150"
+        android:text="Nameasdfasdf"
+        android:textColor="@color/color_Black"
+        android:textSize="@dimen/pt_10" />
+
+    <TextView
+        android:id="@+id/tv_layout_bottom_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/iv_layout_bottom_icon"
+        android:layout_marginLeft="@dimen/dp_5"
+        android:layout_marginStart="@dimen/dp_5"
+        android:layout_toEndOf="@+id/iv_layout_bottom_icon"
+        android:layout_toRightOf="@+id/iv_layout_bottom_icon"
+        android:lines="1"
+        android:text="TextView"
+        android:textColor="@color/color_Gray"
+        android:textSize="@dimen/pt_9" />
+
+    <ProgressBar
+        android:id="@+id/pb_layout_bottom_"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_3"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:max="100"
+        android:progress="0"
+        android:scrollbars="none" />
+
+    <Button
+        android:id="@+id/btn_layout_bottom_next"
+        android:layout_width="@dimen/dp_50"
+        android:layout_height="@dimen/dp_50"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:layout_marginRight="@dimen/dp_10"
+        android:text="Button" />
+
+    <Button
+        android:id="@+id/btn_layout_bottom_playorpause"
+        android:layout_width="@dimen/dp_50"
+        android:layout_height="@dimen/dp_50"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/btn_layout_bottom_next"
+        android:layout_toStartOf="@+id/btn_layout_bottom_next"
+        android:text="Button" />
+
+    <Button
+        android:id="@+id/btn_layout_bottom_up"
+        android:layout_width="@dimen/dp_50"
+        android:layout_height="@dimen/dp_50"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/btn_layout_bottom_playorpause"
+        android:layout_toStartOf="@+id/btn_layout_bottom_playorpause"
+        android:text="Button" />
+
+</RelativeLayout>
