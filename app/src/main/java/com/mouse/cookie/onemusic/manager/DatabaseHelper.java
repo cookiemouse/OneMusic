@@ -18,7 +18,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final int VERSION = 1;
 
     public DatabaseHelper(Context context) {
-        this(context, null, null, VERSION);
+        this(context, Path.DATABASE_NAME);
     }
 
     public DatabaseHelper(Context context, String name) {
@@ -34,16 +34,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.i(TAG, "onCreate");
 
         //删除表
-        //db.execSQL("DROP TABLE " + Path.DATABASE_NAME + "." + Path.DATABASE_TABLE);
+//        db.execSQL("DROP TABLE " + Path.DATABASE_NAME + "." + Path.DATABASE_TABLE);
 
         //创建表
         String sql = "create table "
                 + Path.DATABASE_TABLE
                 + "("
-                + Path.DATABASE_TABLE_NAME
+                + Path.DATABASE_TABLE_TITLE
                 + " TEXT,"
                 + Path.DATABASE_TABLE_PATH
-                + " TEXT)";
+                + " TEXT,"
+                + Path.DATABASE_TABLE_ALBUM
+                + " TEXT,"
+                + Path.DATABASE_TABLE_ARTIST
+                + " TEXT,"
+                + Path.DATABASE_TABLE_BITRATE
+                + " TEXT,"
+                + Path.DATABASE_TABLE_PIC
+                + " BLOB"
+                + ")";
         Log.i(TAG, sql);
         db.execSQL(sql);
     }

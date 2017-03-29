@@ -113,17 +113,23 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onStop() {
         unbindService(mServiceConnection);
         unregisterReceiver(mBroadcastReceiver);
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopService();
         super.onDestroy();
     }
 
     @Override
     public void onBackPressed() {
-        if (isPlaying){
+        if (isPlaying) {
             ContentActivity.this.moveTaskToBack(true);
-        }else {
+        } else {
             super.onBackPressed();
         }
     }
@@ -162,6 +168,12 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         startService(intent);
     }
 
+    //关闭服务
+    private void stopService() {
+        Intent intent = new Intent(ContentActivity.this, PlayerService.class);
+        stopService(intent);
+    }
+
     //绑定服务
     private void bindService() {
         Intent intent = new Intent(ContentActivity.this, PlayerService.class);
@@ -176,9 +188,9 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     //运行时权限
-    private void applyPermission(){
+    private void applyPermission() {
         if (ContextCompat.checkSelfPermission(ContentActivity.this, PERMISSION_READ_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED){
+                PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(ContentActivity.this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     PERMISSION_REQUEST_CODE);
@@ -186,7 +198,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     //打开文件夹
-    private void openFile(){
+    private void openFile() {
         Intent intent = new Intent(ContentActivity.this, FileManagerActivity.class);
         startActivity(intent);
     }
@@ -196,8 +208,8 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
             , @NonNull String[] permissions
             , @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode){
-            case PERMISSION_REQUEST_CODE:{
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.i(TAG, "权限已成功申请");
                 } else {
@@ -206,14 +218,14 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 break;
             }
-            default:{
+            default: {
                 Log.i(TAG, "default");
             }
         }
     }
 
     //弹出信息对话框
-    private void showDialog(String msg){
+    private void showDialog(String msg) {
         AlertDialog.Builder builder = new AlertDialog.Builder(ContentActivity.this);
         builder.setMessage(msg);
 //        builder.setCancelable(false);
@@ -235,7 +247,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                 case Msg.MSG_WHAT: {
                     break;
                 }
-                case Msg.MSG_UPDATE:{
+                case Msg.MSG_UPDATE: {
                     // TODO: 17-3-16 更新界面
                     mProgressBar.setMax(duration);
                     mProgressBar.setProgress(progress);
@@ -253,8 +265,8 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_layout_bottom_playorpause: {
-//                mPlayerService.playOrPause();
-                openFile();
+                mPlayerService.playOrPause();
+//                openFile();
                 Log.i(TAG, "PlayOrPause Button Click");
                 break;
             }
@@ -265,12 +277,12 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     //更新Viewpager Adapter
-    public void updaAdapter(){
+    public void updaAdapter() {
         myFragmentPagerAdapter.notifyDataSetChanged();
     }
 
     //播放音乐,待定
-    public void play(String path){
-        mPlayerService.upOrNext(path);
+    public void play(int position) {
+        mPlayerService.play(position);
     }
 }

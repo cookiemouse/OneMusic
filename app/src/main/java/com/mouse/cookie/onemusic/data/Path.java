@@ -7,8 +7,12 @@ package com.mouse.cookie.onemusic.data;
 public class Path {
     public static final String DATABASE_NAME = "database_name";
     public static final String DATABASE_TABLE = "database_table";
-    public static final String DATABASE_TABLE_NAME = "table_name";
+    public static final String DATABASE_TABLE_TITLE = "table_title";
     public static final String DATABASE_TABLE_PATH = "table_path";
+    public static final String DATABASE_TABLE_ALBUM = "table_album";
+    public static final String DATABASE_TABLE_ARTIST = "table_artist";
+    public static final String DATABASE_TABLE_BITRATE = "table_bitRate";
+    public static final String DATABASE_TABLE_PIC = "table_embeddedPicture";
 
     public final static String SHAREDPREFERENCES= "com.mouse.cookie.onemusic.sharedpreference";
     public final static String DATA_S_PATH = "data_s_path";

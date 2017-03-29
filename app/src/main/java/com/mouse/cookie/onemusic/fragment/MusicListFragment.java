@@ -50,6 +50,13 @@ public class MusicListFragment extends Fragment {
         return viewMusicList;
     }
 
+    @Override
+    public void onResume() {
+        myAsyncTask = new MyAsyncTask();
+        myAsyncTask.execute();
+        super.onResume();
+    }
+
     private void initView(View view) {
 
         mContentActivity = (ContentActivity) getActivity();
@@ -60,9 +67,6 @@ public class MusicListFragment extends Fragment {
 
         mDatabaseManager = new DatabaseManager(mContentActivity.getApplicationContext());
         mediaDataManager = new MediaDataManager(getContext());
-
-        myAsyncTask = new MyAsyncTask();
-        myAsyncTask.execute();
 
         musicListAdapter = new MusicListAdapter(getContext(), musicListAdapterDataList);
 
@@ -79,7 +83,7 @@ public class MusicListFragment extends Fragment {
 //                musicListAdapterDataList.get(position).setPlaying(true);
 //                musicListAdapter.notifyDataSetChanged();
 
-                mContentActivity.play(musicListAdapterDataList.get(position).getPath());
+                mContentActivity.play(position);
             }
         });
     }
@@ -94,40 +98,22 @@ public class MusicListFragment extends Fragment {
 
         @Override
         protected Object doInBackground(Object[] params) {
-            Cursor cursor = mDatabaseManager.queryData();
-            if (null != cursor) {
+            Cursor cursor = mDatabaseManager.queryAllData();
+            if (null != cursor && cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 do {
-                    mediaDataManager.setResource(cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_PATH)));
-                    String album = mediaDataManager.getAlbum();
-                    String musicName = mediaDataManager.getTitle();
-                    String artist = mediaDataManager.getArtist();
-                    String bitRate = mediaDataManager.getBitRate();
+                    String album = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ALBUM));
+                    String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
+                    String artist = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ARTIST));
+                    String bitRate = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_BITRATE));
                     String path = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_PATH));
-                    byte[] embeddedPicture = mediaDataManager.getEmbeddedPicture();
-
+                    byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
                     Bitmap bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
-                    musicListAdapterDataList.add(new MusicListAdapterData(scaleBitmap(bitmap), musicName, artist, album, bitRate, path, false));
+
+                    musicListAdapterDataList.add(new MusicListAdapterData(bitmap, title, artist, album, bitRate, path, false));
                 } while (cursor.moveToNext());
             }
             return null;
         }
-    }
-
-    //压缩图片
-    private Bitmap scaleBitmap(Bitmap bitmap){
-        if (null == bitmap){
-            return null;
-        }
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        Matrix matrix = new Matrix();
-        matrix.preScale(0.2f, 0.2f);
-        Bitmap bitmapReturn = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, false);
-        if (bitmap.equals(bitmapReturn)){
-            return bitmapReturn;
-        }
-        bitmap.recycle();
-        return bitmapReturn;
     }
 }

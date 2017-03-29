@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.mouse.cookie.onemusic.data.Action;
 import com.mouse.cookie.onemusic.data.Msg;
+import com.mouse.cookie.onemusic.manager.DatabaseManager;
 import com.mouse.cookie.onemusic.manager.MediaDataManager;
 import com.mouse.cookie.onemusic.manager.MediaManager;
 
@@ -22,6 +23,8 @@ public class PlayerService extends Service {
 
     private static final int DELAY = 500;
 
+    private int current = 0;
+
     @NonNull
     private String TEST_PATH = "/storage/emulated/0/music/雅尼 - Nightingale.mp3";
     private Uri TEST_URI = null;
@@ -30,6 +33,7 @@ public class PlayerService extends Service {
     private MyHandler myHandler;
 
     private MediaManager mediaManager;
+    private DatabaseManager mDatabaseManager;
     private MediaDataManager mediaDataManager;
 
     //音频焦点控制
@@ -46,6 +50,7 @@ public class PlayerService extends Service {
         myHandler = new MyHandler();
 
         mediaManager = new MediaManager(getApplicationContext());
+        mDatabaseManager = new DatabaseManager(getApplicationContext());
         mediaDataManager = new MediaDataManager(getApplicationContext());
 
         mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -53,12 +58,16 @@ public class PlayerService extends Service {
         mediaManager.setPlayListener(new MediaManager.PlayListener() {
             @Override
             public void onCompletion() {
+                if (current < mDatabaseManager.queryAllData().getCount()){
+                    current++;
+                    play(current);
+                }
             }
 
             @Override
             public void onStatuChanged(boolean paused) {
                 if (paused) {
-                    myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
+                    myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
                 } else {
                     myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
                 }
@@ -66,6 +75,7 @@ public class PlayerService extends Service {
 
             @Override
             public void onError(String error) {
+                myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
             }
         });
 
@@ -213,10 +223,12 @@ public class PlayerService extends Service {
         Log.i(TAG, "paly or pause");
         if (mediaManager.isPlaying()) {
             mediaManager.pause();
+            myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
             abandonAudioFocus();
         } else if (mediaManager.isPause()) {
             applyAudioFocus();
             mediaManager.replay();
+            myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
         } else {
             applyAudioFocus();
             if (null != TEST_URI) {
@@ -227,7 +239,10 @@ public class PlayerService extends Service {
         }
     }
 
-    public void play(int i){
+    public void play(int position){
+        current = position;
+        TEST_PATH = mDatabaseManager.queryPath(position);
+        setResource(TEST_PATH);
     }
 
     public void upOrNext(@NonNull String path) {
