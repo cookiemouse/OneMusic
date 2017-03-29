@@ -3,7 +3,6 @@ package com.mouse.cookie.onemusic.fragment;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -20,12 +19,15 @@ import com.mouse.cookie.onemusic.adapter.MusicListAdapter;
 import com.mouse.cookie.onemusic.data.MusicListAdapterData;
 import com.mouse.cookie.onemusic.data.Path;
 import com.mouse.cookie.onemusic.manager.DatabaseManager;
-import com.mouse.cookie.onemusic.manager.MediaDataManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MusicListFragment extends Fragment {
+
+    private static final String TAG = "MusicListFragment";
+
+    private int current = 0;
 
     private ContentActivity mContentActivity;
 
@@ -34,7 +36,6 @@ public class MusicListFragment extends Fragment {
     private MusicListAdapter musicListAdapter;
 
     private DatabaseManager mDatabaseManager;
-    private MediaDataManager mediaDataManager;
 
     private MyAsyncTask myAsyncTask;
 
@@ -54,6 +55,9 @@ public class MusicListFragment extends Fragment {
     public void onResume() {
         myAsyncTask = new MyAsyncTask();
         myAsyncTask.execute();
+
+        current = mContentActivity.getCurrent();
+
         super.onResume();
     }
 
@@ -66,7 +70,6 @@ public class MusicListFragment extends Fragment {
         musicListAdapterDataList = new ArrayList<>();
 
         mDatabaseManager = new DatabaseManager(mContentActivity.getApplicationContext());
-        mediaDataManager = new MediaDataManager(getContext());
 
         musicListAdapter = new MusicListAdapter(getContext(), musicListAdapterDataList);
 
@@ -77,13 +80,12 @@ public class MusicListFragment extends Fragment {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                for (MusicListAdapterData data : musicListAdapterDataList) {
-//                    data.setPlaying(false);
-//                }
-//                musicListAdapterDataList.get(position).setPlaying(true);
-//                musicListAdapter.notifyDataSetChanged();
+                if (current != position) {
+                    current = position;
+                    updateState();
 
-                mContentActivity.play(position);
+                    mContentActivity.play(position);
+                }
             }
         });
     }
@@ -91,8 +93,8 @@ public class MusicListFragment extends Fragment {
     private class MyAsyncTask extends AsyncTask {
         @Override
         protected void onPostExecute(Object o) {
-            musicListAdapter.notifyDataSetChanged();
-            mContentActivity.updaAdapter();
+            updateState();
+            mContentActivity.updateAdapter();
 //            super.onPostExecute(o);
         }
 
@@ -116,4 +118,24 @@ public class MusicListFragment extends Fragment {
             return null;
         }
     }
+
+    private void updateState() {
+        for (MusicListAdapterData data : musicListAdapterDataList) {
+            data.setPlaying(false);
+        }
+        if (current < musicListAdapterDataList.size()) {
+            musicListAdapterDataList.get(current).setPlaying(true);
+        }
+        musicListAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 由ContentActivity操作，主要用于被动更新状态
+     */
+    public void updateStatu(int current) {
+        this.current = current;
+        updateState();
+    }
+
+    // TODO: 17-3-29 还有一个是否正在播放，如果在播放则显示图标，未播放则不显示
 }

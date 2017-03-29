@@ -26,7 +26,7 @@ public class PlayerService extends Service {
     private int current = 0;
 
     @NonNull
-    private String TEST_PATH = "/storage/emulated/0/music/雅尼 - Nightingale.mp3";
+    private String TEST_PATH = "";
     private Uri TEST_URI = null;
 
     private MyBinder myBinder;
@@ -58,7 +58,7 @@ public class PlayerService extends Service {
         mediaManager.setPlayListener(new MediaManager.PlayListener() {
             @Override
             public void onCompletion() {
-                if (current < mDatabaseManager.queryAllData().getCount()){
+                if (current < mDatabaseManager.queryAllData().getCount()) {
                     current++;
                     play(current);
                 }
@@ -75,7 +75,7 @@ public class PlayerService extends Service {
 
             @Override
             public void onError(String error) {
-                myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
+                myHandler.obtainMessage(Msg.MSG_ERROR, error).sendToTarget();
             }
         });
 
@@ -146,6 +146,7 @@ public class PlayerService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "onDestroy");
+        mediaManager.destory();
         super.onDestroy();
     }
 
@@ -168,9 +169,17 @@ public class PlayerService extends Service {
                         @Override
                         public void run() {
                             myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
-                            setStatuBoradcast();
+                            sendStatuBroadcast();
                         }
                     }, DELAY);
+                    break;
+                }
+                case Msg.MSG_CHANGE: {
+                    sendChangeBroadcast();
+                    break;
+                }
+                case Msg.MSG_ERROR: {
+                    sendErrorBroadcast((String) msg.obj);
                     break;
                 }
                 default: {
@@ -206,11 +215,24 @@ public class PlayerService extends Service {
     }
 
     //发送广播更新播放状态
-    private void setStatuBoradcast() {
+    private void sendStatuBroadcast() {
         Intent intent = new Intent(Action.UPDATE);
-        intent.putExtra(Action.UPDATE_ISPALYING, mediaManager.isPlaying());
         intent.putExtra(Action.UPDATE_PROGRESS, mediaManager.getProgress());
-        intent.putExtra(Action.UPDATE_DURATION, Integer.valueOf(mediaDataManager.getDuration()));
+        intent.putExtra(Action.UPDATA_DURATIOn, Integer.valueOf(mediaDataManager.getDuration()));
+        sendBroadcast(intent);
+    }
+
+    //发送歌曲改变广播
+    private void sendChangeBroadcast() {
+        Intent intent = new Intent(Action.CHANGE);
+        intent.putExtra(Action.CHANGE_CURRENT, current);
+        sendBroadcast(intent);
+    }
+
+    //发送Error广播
+    private void sendErrorBroadcast(String error) {
+        Intent intent = new Intent(Action.ERROR);
+        intent.putExtra(Action.SEND_ERROR, error);
         sendBroadcast(intent);
     }
 
@@ -231,27 +253,38 @@ public class PlayerService extends Service {
             myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
         } else {
             applyAudioFocus();
-            if (null != TEST_URI) {
-                setResource(TEST_URI);
-            } else {
-                setResource(TEST_PATH);
-            }
+            play(current);
         }
     }
 
-    public void play(int position){
+    public void play(int position) {
         current = position;
         TEST_PATH = mDatabaseManager.queryPath(position);
-        setResource(TEST_PATH);
+        if (null != TEST_PATH) {
+            setResource(TEST_PATH);
+            myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
+        }
     }
 
-    public void upOrNext(@NonNull String path) {
-        Log.e(TAG, "path-->" + path);
-        TEST_PATH = path;
-        setResource(path);
+    public void play(Uri uri) {
+        if (null != uri) {
+            TEST_URI = uri;
+            setResource(uri);
+            myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
+        }
     }
 
-    public void upOrNext(@NonNull Uri uri) {
-        setResource(uri);
+    public boolean isPlaying() {
+        return mediaManager.isPlaying();
+    }
+
+    public int getCurrent() {
+        return current;
+    }
+
+    //待定，要不要退出时再进入，设置保存的进度
+    //开放，通过托动进度条来设置进度
+    public void setProgress(int progress) {
+        mediaManager.setProgress(progress);
     }
 }

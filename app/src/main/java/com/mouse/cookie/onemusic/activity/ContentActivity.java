@@ -1,7 +1,6 @@
 package com.mouse.cookie.onemusic.activity;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,7 +9,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -25,17 +26,20 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mouse.cookie.onemusic.R;
 import com.mouse.cookie.onemusic.adapter.MyFragmentPagerAdapter;
 import com.mouse.cookie.onemusic.data.Action;
 import com.mouse.cookie.onemusic.data.Msg;
+import com.mouse.cookie.onemusic.data.Path;
 import com.mouse.cookie.onemusic.fragment.LyricFragment;
 import com.mouse.cookie.onemusic.fragment.MusicListFragment;
 import com.mouse.cookie.onemusic.fragment.PlayingFragment;
+import com.mouse.cookie.onemusic.manager.DatabaseManager;
 import com.mouse.cookie.onemusic.service.PlayerService;
 
 import java.util.ArrayList;
@@ -47,16 +51,23 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     private final static String PERMISSION_READ_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
     private final static int PERMISSION_REQUEST_CODE = 1;
 
-    private boolean isPlaying;
     private int duration, progress;
+    private int current;
+    private String strError = "";
 
     private MyFragmentPagerAdapter myFragmentPagerAdapter;
+    private MusicListFragment musicListFragment = new MusicListFragment();
+    private PlayingFragment mPlayingFragment = new PlayingFragment();
+    private LyricFragment mLyricFragment = new LyricFragment();
+
+    private ImageView mImageViewAblum;
+    private TextView mTextViewTitle, mTextViewArtist;
+
+    private DatabaseManager mDatabaseManager;
 
     private PlayerService mPlayerService;
 
     private MyHandler myHandler = new MyHandler();
-
-    private Button mButtonPlayOrPause;
 
     private ProgressBar mProgressBar;
 
@@ -64,7 +75,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(TAG, "onServiceDisconnected");
+            Log.i(TAG, "onServiceConnected");
             mPlayerService = ((PlayerService.MyBinder) service).getService();
         }
 
@@ -79,12 +90,27 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Action.UPDATE)) {
-                isPlaying = intent.getBooleanExtra(Action.UPDATE_ISPALYING, false);
-                duration = intent.getIntExtra(Action.UPDATE_DURATION, 0);
-                progress = intent.getIntExtra(Action.UPDATE_PROGRESS, 0);
+            switch (intent.getAction()) {
+                case Action.UPDATE: {
+                    duration = intent.getIntExtra(Action.UPDATA_DURATIOn, 0);
+                    progress = intent.getIntExtra(Action.UPDATE_PROGRESS, 0);
 
-                myHandler.obtainMessage(Msg.MSG_UPDATE).sendToTarget();
+                    myHandler.obtainMessage(Msg.MSG_UPDATE).sendToTarget();
+                    break;
+                }
+                case Action.ERROR: {
+                    strError = intent.getStringExtra(Action.SEND_ERROR);
+                    myHandler.obtainMessage(Msg.MSG_ERROR).sendToTarget();
+                    break;
+                }
+                case Action.CHANGE: {
+                    current = intent.getIntExtra(Action.CHANGE_CURRENT, 0);
+                    myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
+                    break;
+                }
+                default: {
+                    Log.i(TAG, "Broadcast default " + intent.getAction());
+                }
             }
         }
     };
@@ -109,6 +135,10 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     protected void onResume() {
         bindService();
         registerBroadcast();
+        if (null != mPlayerService) {
+            current = mPlayerService.getCurrent();
+        }
+        updateUI();
         super.onResume();
     }
 
@@ -127,7 +157,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onBackPressed() {
-        if (isPlaying) {
+        if (null != mPlayerService && mPlayerService.isPlaying()) {
             ContentActivity.this.moveTaskToBack(true);
         } else {
             super.onBackPressed();
@@ -136,12 +166,14 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
 
     //初始化视图
     private void initView() {
+        mDatabaseManager = new DatabaseManager(getApplicationContext());
+
+        mImageViewAblum = (ImageView) findViewById(R.id.iv_layout_bottom_icon);
+        mTextViewTitle = (TextView) findViewById(R.id.tv_layout_bottom_title);
+        mTextViewArtist = (TextView) findViewById(R.id.tv_layout_bottom_name);
+
         ViewPager mViewPager = (ViewPager) findViewById(R.id.vp_activity_content_);
         List<Fragment> mFragmentList = new ArrayList<>();
-
-        MusicListFragment musicListFragment = new MusicListFragment();
-        PlayingFragment mPlayingFragment = new PlayingFragment();
-        LyricFragment mLyricFragment = new LyricFragment();
 
         mFragmentList.add(musicListFragment);
         mFragmentList.add(mPlayingFragment);
@@ -156,7 +188,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         mViewPager.setCurrentItem(1);
         mViewPager.setOffscreenPageLimit(3);
 
-        mButtonPlayOrPause = (Button) findViewById(R.id.btn_layout_bottom_playorpause);
+        Button mButtonPlayOrPause = (Button) findViewById(R.id.btn_layout_bottom_playorpause);
         mButtonPlayOrPause.setOnClickListener(this);
 
         mProgressBar = (ProgressBar) findViewById(R.id.pb_layout_bottom_);
@@ -170,8 +202,10 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
 
     //关闭服务
     private void stopService() {
-        Intent intent = new Intent(ContentActivity.this, PlayerService.class);
-        stopService(intent);
+        if (null != mPlayerService && !mPlayerService.isPlaying()) {
+            Intent intent = new Intent(ContentActivity.this, PlayerService.class);
+            stopService(intent);
+        }
     }
 
     //绑定服务
@@ -184,6 +218,8 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     private void registerBroadcast() {
         IntentFilter mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(Action.UPDATE);
+        mIntentFilter.addAction(Action.ERROR);
+        mIntentFilter.addAction(Action.CHANGE);
         registerReceiver(mBroadcastReceiver, mIntentFilter);
     }
 
@@ -203,6 +239,22 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         startActivity(intent);
     }
 
+    //更新底部控件
+    private void updateUI(){
+        Cursor cursor = mDatabaseManager.queryAllData();
+        if (current <= cursor.getCount()) {
+            cursor.move(current + 1);
+            String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
+            String artist = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ARTIST));
+            byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
+            Bitmap bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
+
+            mImageViewAblum.setImageBitmap(bitmap);
+            mTextViewTitle.setText(title);
+            mTextViewArtist.setText(artist);
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode
             , @NonNull String[] permissions
@@ -219,7 +271,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             }
             default: {
-                Log.i(TAG, "default");
+                Log.i(TAG, "Permission default");
             }
         }
     }
@@ -253,8 +305,19 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                     mProgressBar.setProgress(progress);
                     break;
                 }
+                case Msg.MSG_ERROR: {
+                    Toast.makeText(ContentActivity.this, strError, Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                case Msg.MSG_CHANGE: {
+                    //更新底部控件状态
+                    updateUI();
+                    //更新列表中的播放状态
+                    musicListFragment.updateStatu(current);
+                    break;
+                }
                 default: {
-                    Log.i(TAG, "default");
+                    Log.i(TAG, "MyHandler default " + msg.what);
                     break;
                 }
             }
@@ -271,18 +334,23 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             }
             default: {
-                Log.i(TAG, "default");
+                Log.i(TAG, "onClick default");
             }
         }
     }
 
     //更新Viewpager Adapter
-    public void updaAdapter() {
+    public void updateAdapter() {
         myFragmentPagerAdapter.notifyDataSetChanged();
     }
 
     //播放音乐,待定
     public void play(int position) {
         mPlayerService.play(position);
+    }
+
+    //提供当前current
+    public int getCurrent() {
+        return current;
     }
 }

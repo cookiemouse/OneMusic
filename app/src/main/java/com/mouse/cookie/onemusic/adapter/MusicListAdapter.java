@@ -1,9 +1,6 @@
 package com.mouse.cookie.onemusic.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,7 +49,8 @@ public class MusicListAdapter extends BaseAdapter {
         if (null == convertView) {
             viewHolder = new ViewHolder();
             convertView = LayoutInflater.from(mContext).inflate(R.layout.adapter_musiclist, null);
-            viewHolder.imageView = (ImageView) convertView.findViewById(R.id.iv_adapter_musiclist_playing);
+            viewHolder.imageViewPlaying = (ImageView) convertView.findViewById(R.id.iv_adapter_filemanager_playing);
+            viewHolder.imageViewAblum = (ImageView) convertView.findViewById(R.id.iv_adapter_musiclist_playing);
             viewHolder.textViewTitle = (TextView) convertView.findViewById(R.id.tv_adapter_musiclist_title);
             viewHolder.textViewSummary = (TextView) convertView.findViewById(R.id.tv_adapter_musiclist_summary);
             viewHolder.textViewArtist = (TextView) convertView.findViewById(R.id.tv_adapter_musiclist_artist);
@@ -62,13 +60,12 @@ public class MusicListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-//        if (data.isPlaying()) {
-//            viewHolder.imageView.setVisibility(View.VISIBLE);
-//        } else {
-//            viewHolder.imageView.setVisibility(View.GONE);
-//        }
-
-        viewHolder.imageView.setImageBitmap(data.getPic());
+        if (data.isPlaying()) {
+            viewHolder.imageViewPlaying.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.imageViewPlaying.setVisibility(View.GONE);
+        }
+        viewHolder.imageViewAblum.setImageBitmap(data.getPic());
         viewHolder.textViewTitle.setText(data.getMusicName());
         viewHolder.textViewSummary.setText(data.getSummary());
         viewHolder.textViewArtist.setText(data.getArtist());
@@ -77,7 +74,7 @@ public class MusicListAdapter extends BaseAdapter {
     }
 
     private class ViewHolder {
-        ImageView imageView;
+        ImageView imageViewAblum, imageViewPlaying;
         TextView textViewTitle, textViewSummary, textViewArtist;
     }
 }

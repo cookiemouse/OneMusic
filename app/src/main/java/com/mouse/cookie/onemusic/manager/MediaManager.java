@@ -126,15 +126,17 @@ public class MediaManager {
         return isPause;
     }
 
-    public void setLoop(boolean isloop) {
-        if (null != mediaPlayer) {
-            mediaPlayer.setLooping(isloop);
-        }
-    }
-
-    public boolean isLoop() {
-        return mediaPlayer.isLooping();
-    }
+    //待定，应该由PlayerService来控制播放模式
+    //随机，或者单曲循环，列表循环，顺序播放
+//    public void setLoop(boolean isloop) {
+//        if (null != mediaPlayer) {
+//            mediaPlayer.setLooping(isloop);
+//        }
+//    }
+//
+//    public boolean isLoop() {
+//        return mediaPlayer.isLooping();
+//    }
 
     public void pause() {
         if (null != mediaPlayer && mediaPlayer.isPlaying()) {
