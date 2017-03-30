@@ -108,6 +108,10 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                     myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
                     break;
                 }
+                case Action.STOP: {
+                    myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
+                    break;
+                }
                 default: {
                     Log.i(TAG, "Broadcast default " + intent.getAction());
                 }
@@ -189,7 +193,11 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         mViewPager.setOffscreenPageLimit(3);
 
         Button mButtonPlayOrPause = (Button) findViewById(R.id.btn_layout_bottom_playorpause);
+        Button mButtonNext = (Button) findViewById(R.id.btn_layout_bottom_next);
+        Button mButtonUp = (Button) findViewById(R.id.btn_layout_bottom_up);
         mButtonPlayOrPause.setOnClickListener(this);
+        mButtonNext.setOnClickListener(this);
+        mButtonUp.setOnClickListener(this);
 
         mProgressBar = (ProgressBar) findViewById(R.id.pb_layout_bottom_);
     }
@@ -220,6 +228,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         mIntentFilter.addAction(Action.UPDATE);
         mIntentFilter.addAction(Action.ERROR);
         mIntentFilter.addAction(Action.CHANGE);
+        mIntentFilter.addAction(Action.STOP);
         registerReceiver(mBroadcastReceiver, mIntentFilter);
     }
 
@@ -313,7 +322,12 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                     //更新底部控件状态
                     updateUI();
                     //更新列表中的播放状态
-                    musicListFragment.updateStatu(current);
+                    musicListFragment.setPosition(current);
+                    break;
+                }
+                case Msg.MSG_STOP:{
+                    mProgressBar.setProgress(0);
+                    musicListFragment.setStop();
                     break;
                 }
                 default: {
@@ -331,6 +345,14 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                 mPlayerService.playOrPause();
 //                openFile();
                 Log.i(TAG, "PlayOrPause Button Click");
+                break;
+            }
+            case R.id.btn_layout_bottom_next: {
+                mPlayerService.playNext();
+                break;
+            }
+            case R.id.btn_layout_bottom_up: {
+                mPlayerService.playUp();
                 break;
             }
             default: {

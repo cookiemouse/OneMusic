@@ -11,11 +11,20 @@ import java.io.IOException;
  * Created by xp on 17-3-15.
  * 提供对外的方法有setSource、setLoop、isLoog、pause、replay、setProgress、destory
  * 对外回调PlayListener==>onCompletion、onStatuChanged、onError
+ * mediaPlayer.prepare();
+ * mediaPlayer.prepareAsync();
+ * mediaPlayer.start();
+ * mediaPlayer.pause();
+ * mediaPlayer.stop();
+ * mediaPlayer.reset();
+ * mediaPlayer.release();
  */
 
 public class MediaManager {
 
     private final static String TAG = "MediaManager";
+
+    private static MediaManager mediaManager;
 
     private MediaPlayer mediaPlayer;
 
@@ -23,20 +32,23 @@ public class MediaManager {
 
     private PlayListener mPlayListener;
 
-    private Context mContext;
+    //单例模式
+    public static MediaManager getInstance() {
+        if (null == mediaManager) {
+            //仅同步实例化的代码块
+            synchronized (MediaManager.class) {
+                if (null == mediaManager) {
+                    mediaManager = new MediaManager();
+                }
+            }
+        }
+        return mediaManager;
+    }
 
-    public MediaManager(Context context) {
+    private MediaManager() {
 
-        this.mContext = context;
         mediaPlayer = new MediaPlayer();
 
-//        mediaPlayer.prepare();
-//        mediaPlayer.prepareAsync();
-//        mediaPlayer.start();
-//        mediaPlayer.pause();
-//        mediaPlayer.stop();
-//        mediaPlayer.reset();
-//        mediaPlayer.release();
 
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -103,14 +115,14 @@ public class MediaManager {
     }
 
     //待定
-    public void setResource(Uri uri) {
+    public void setResource(Context context, Uri uri) {
 
         //重置
         pause();
         mediaPlayer.reset();
 
         try {
-            mediaPlayer.setDataSource(mContext, uri);
+            mediaPlayer.setDataSource(context, uri);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -118,11 +130,11 @@ public class MediaManager {
         mediaPlayer.prepareAsync();
     }
 
-    public boolean isPlaying(){
+    public boolean isPlaying() {
         return mediaPlayer.isPlaying();
     }
 
-    public boolean isPause(){
+    public boolean isPause() {
         return isPause;
     }
 
@@ -173,7 +185,7 @@ public class MediaManager {
         }
     }
 
-    public int getProgress(){
+    public int getProgress() {
         return mediaPlayer.getCurrentPosition();
     }
 

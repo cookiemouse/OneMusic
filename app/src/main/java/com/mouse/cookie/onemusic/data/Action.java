@@ -15,4 +15,6 @@ public class Action {
 
     public final static String CHANGE = "com.mouse.cookie.change";
     public final static String CHANGE_CURRENT = "com.mouse.cookie.change_current";
+
+    public final static String STOP = "com.mouse.cookie.stop";
 }

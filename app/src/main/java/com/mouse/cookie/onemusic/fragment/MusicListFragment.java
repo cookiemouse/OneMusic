@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,11 +54,7 @@ public class MusicListFragment extends Fragment {
 
     @Override
     public void onResume() {
-        myAsyncTask = new MyAsyncTask();
-        myAsyncTask.execute();
-
-        current = mContentActivity.getCurrent();
-
+        setPosition(mContentActivity.getCurrent());
         super.onResume();
     }
 
@@ -74,6 +71,8 @@ public class MusicListFragment extends Fragment {
         musicListAdapter = new MusicListAdapter(getContext(), musicListAdapterDataList);
 
         mListView.setAdapter(musicListAdapter);
+
+        flushListData();
     }
 
     private void setEventListener() {
@@ -81,8 +80,7 @@ public class MusicListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (current != position) {
-                    current = position;
-                    updateState();
+                    setPosition(position);
 
                     mContentActivity.play(position);
                 }
@@ -91,16 +89,22 @@ public class MusicListFragment extends Fragment {
     }
 
     private class MyAsyncTask extends AsyncTask {
+
         @Override
-        protected void onPostExecute(Object o) {
-            updateState();
-            mContentActivity.updateAdapter();
-//            super.onPostExecute(o);
+        protected void onPreExecute() {
+            musicListAdapterDataList.clear();
+            super.onPreExecute();
         }
 
         @Override
         protected Object doInBackground(Object[] params) {
             Cursor cursor = mDatabaseManager.queryAllData();
+            return cursor;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            Cursor cursor = (Cursor) o;
             if (null != cursor && cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 do {
@@ -115,8 +119,15 @@ public class MusicListFragment extends Fragment {
                     musicListAdapterDataList.add(new MusicListAdapterData(bitmap, title, artist, album, bitRate, path, false));
                 } while (cursor.moveToNext());
             }
-            return null;
+            musicListAdapter.notifyDataSetChanged();
+            mContentActivity.updateAdapter();
+//            super.onPostExecute(o);
         }
+    }
+
+    private void flushListData(){
+        myAsyncTask = new MyAsyncTask();
+        myAsyncTask.execute();
     }
 
     private void updateState() {
@@ -132,10 +143,15 @@ public class MusicListFragment extends Fragment {
     /**
      * 由ContentActivity操作，主要用于被动更新状态
      */
-    public void updateStatu(int current) {
+    public void setPosition(int current) {
         this.current = current;
         updateState();
     }
 
-    // TODO: 17-3-29 还有一个是否正在播放，如果在播放则显示图标，未播放则不显示
+    public void setStop() {
+        for (MusicListAdapterData data : musicListAdapterDataList) {
+            data.setPlaying(false);
+        }
+        musicListAdapter.notifyDataSetChanged();
+    }
 }

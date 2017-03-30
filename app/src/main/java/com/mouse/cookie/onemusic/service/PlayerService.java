@@ -49,7 +49,7 @@ public class PlayerService extends Service {
 
         myHandler = new MyHandler();
 
-        mediaManager = new MediaManager(getApplicationContext());
+        mediaManager = MediaManager.getInstance();
         mDatabaseManager = new DatabaseManager(getApplicationContext());
         mediaDataManager = new MediaDataManager(getApplicationContext());
 
@@ -58,10 +58,8 @@ public class PlayerService extends Service {
         mediaManager.setPlayListener(new MediaManager.PlayListener() {
             @Override
             public void onCompletion() {
-                if (current < mDatabaseManager.queryAllData().getCount()) {
-                    current++;
-                    play(current);
-                }
+                myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
+                playNext();
             }
 
             @Override
@@ -146,6 +144,7 @@ public class PlayerService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "onDestroy");
+        myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
         mediaManager.destory();
         super.onDestroy();
     }
@@ -176,6 +175,10 @@ public class PlayerService extends Service {
                 }
                 case Msg.MSG_CHANGE: {
                     sendChangeBroadcast();
+                    break;
+                }
+                case Msg.MSG_STOP: {
+                    sendStopBroadcast();
                     break;
                 }
                 case Msg.MSG_ERROR: {
@@ -209,7 +212,7 @@ public class PlayerService extends Service {
     }
 
     private void setResource(Uri uri) {
-        mediaManager.setResource(uri);
+        mediaManager.setResource(getApplicationContext(), uri);
         mediaDataManager.setResource(uri);
         TEST_URI = uri;
     }
@@ -226,6 +229,12 @@ public class PlayerService extends Service {
     private void sendChangeBroadcast() {
         Intent intent = new Intent(Action.CHANGE);
         intent.putExtra(Action.CHANGE_CURRENT, current);
+        sendBroadcast(intent);
+    }
+
+    //发送Stop广播
+    private void sendStopBroadcast() {
+        Intent intent = new Intent(Action.STOP);
         sendBroadcast(intent);
     }
 
@@ -271,6 +280,20 @@ public class PlayerService extends Service {
             TEST_URI = uri;
             setResource(uri);
             myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
+        }
+    }
+
+    public void playNext() {
+        if (current < mDatabaseManager.queryAllData().getCount()) {
+            current++;
+            play(current);
+        }
+    }
+
+    public void playUp() {
+        if (current > 0) {
+            current--;
+            play(current);
         }
     }
 
