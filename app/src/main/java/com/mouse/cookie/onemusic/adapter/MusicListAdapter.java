@@ -49,8 +49,8 @@ public class MusicListAdapter extends BaseAdapter {
         if (null == convertView) {
             viewHolder = new ViewHolder();
             convertView = LayoutInflater.from(mContext).inflate(R.layout.adapter_musiclist, null);
-            viewHolder.imageViewPlaying = (ImageView) convertView.findViewById(R.id.iv_adapter_filemanager_playing);
-            viewHolder.imageViewAblum = (ImageView) convertView.findViewById(R.id.iv_adapter_musiclist_playing);
+            viewHolder.imageViewPlaying = (ImageView) convertView.findViewById(R.id.iv_adapter_musiclist_playing);
+            viewHolder.imageViewAblum = (ImageView) convertView.findViewById(R.id.iv_adapter_musiclist_icon);
             viewHolder.textViewTitle = (TextView) convertView.findViewById(R.id.tv_adapter_musiclist_title);
             viewHolder.textViewSummary = (TextView) convertView.findViewById(R.id.tv_adapter_musiclist_summary);
             viewHolder.textViewArtist = (TextView) convertView.findViewById(R.id.tv_adapter_musiclist_artist);
@@ -63,7 +63,7 @@ public class MusicListAdapter extends BaseAdapter {
         if (data.isPlaying()) {
             viewHolder.imageViewPlaying.setVisibility(View.VISIBLE);
         } else {
-            viewHolder.imageViewPlaying.setVisibility(View.GONE);
+            viewHolder.imageViewPlaying.setVisibility(View.INVISIBLE);
         }
         viewHolder.imageViewAblum.setImageBitmap(data.getPic());
         viewHolder.textViewTitle.setText(data.getMusicName());

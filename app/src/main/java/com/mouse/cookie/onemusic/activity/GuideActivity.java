@@ -13,18 +13,36 @@ public class GuideActivity extends AppCompatActivity {
     private final static int DELAY = 2000;
 
     private MyHandler myHandler = new MyHandler();
+    private Runnable mRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_guide);
 
-        myHandler.postDelayed(new Runnable() {
+        mRunnable = new Runnable() {
             @Override
             public void run() {
                 toActivity();
             }
-        }, DELAY);
+        };
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myHandler.postDelayed(mRunnable, DELAY);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        myHandler.removeCallbacks(mRunnable);
+    }
+
+    @Override
+    public void onBackPressed() {
+//        super.onBackPressed();
     }
 
     //跳转

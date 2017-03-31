@@ -31,6 +31,8 @@ public class PlayerService extends Service {
 
     private MyBinder myBinder;
     private MyHandler myHandler;
+    //更新进度的Runnable
+    private Runnable mRunnableUpdate;
 
     private MediaManager mediaManager;
     private DatabaseManager mDatabaseManager;
@@ -48,6 +50,13 @@ public class PlayerService extends Service {
         myBinder = new MyBinder();
 
         myHandler = new MyHandler();
+        mRunnableUpdate = new Runnable() {
+            @Override
+            public void run() {
+                myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
+                sendStatuBroadcast();
+            }
+        };
 
         mediaManager = MediaManager.getInstance();
         mDatabaseManager = new DatabaseManager(getApplicationContext());
@@ -58,8 +67,8 @@ public class PlayerService extends Service {
         mediaManager.setPlayListener(new MediaManager.PlayListener() {
             @Override
             public void onCompletion() {
+                myHandler.removeCallbacks(mRunnableUpdate);
                 myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
-                playNext();
             }
 
             @Override
@@ -164,21 +173,16 @@ public class PlayerService extends Service {
                     break;
                 }
                 case Msg.MSG_CYCLE: {
-                    myHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
-                            sendStatuBroadcast();
-                        }
-                    }, DELAY);
+                    myHandler.postDelayed(mRunnableUpdate, DELAY);
                     break;
                 }
-                case Msg.MSG_CHANGE: {
-                    sendChangeBroadcast();
+                case Msg.MSG_START: {
+                    sendStartBroadcast();
                     break;
                 }
                 case Msg.MSG_STOP: {
                     sendStopBroadcast();
+                    playNext();
                     break;
                 }
                 case Msg.MSG_ERROR: {
@@ -226,9 +230,9 @@ public class PlayerService extends Service {
     }
 
     //发送歌曲改变广播
-    private void sendChangeBroadcast() {
-        Intent intent = new Intent(Action.CHANGE);
-        intent.putExtra(Action.CHANGE_CURRENT, current);
+    private void sendStartBroadcast() {
+        Intent intent = new Intent(Action.START);
+        intent.putExtra(Action.START_CURRENT, current);
         sendBroadcast(intent);
     }
 
@@ -271,7 +275,7 @@ public class PlayerService extends Service {
         TEST_PATH = mDatabaseManager.queryPath(position);
         if (null != TEST_PATH) {
             setResource(TEST_PATH);
-            myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
+            myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
         }
     }
 
@@ -279,12 +283,12 @@ public class PlayerService extends Service {
         if (null != uri) {
             TEST_URI = uri;
             setResource(uri);
-            myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
+            myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
         }
     }
 
     public void playNext() {
-        if (current < mDatabaseManager.queryAllData().getCount()) {
+        if (current < mDatabaseManager.queryAllData().getCount() - 1) {
             current++;
             play(current);
         }

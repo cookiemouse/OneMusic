@@ -54,7 +54,9 @@ public class MusicListFragment extends Fragment {
 
     @Override
     public void onResume() {
-        setPosition(mContentActivity.getCurrent());
+        if (mContentActivity.isPlaying()) {
+            setPosition(mContentActivity.getCurrent());
+        }
         super.onResume();
     }
 
@@ -79,6 +81,11 @@ public class MusicListFragment extends Fragment {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (!mContentActivity.isPlaying()) {
+                    setPosition(position);
+                    mContentActivity.play(position);
+                    return;
+                }
                 if (current != position) {
                     setPosition(position);
 
@@ -125,7 +132,18 @@ public class MusicListFragment extends Fragment {
         }
     }
 
-    private void flushListData(){
+    //listview如果Item不可见滑动中间
+    private void scrollToMiddle(){
+        int top = mListView.getFirstVisiblePosition() + 1;
+        int bottom = mListView.getLastVisiblePosition() - 1;
+        if (current < top){
+            mListView.smoothScrollToPosition(current - ((bottom - top) / 2));
+        }else if (current > bottom){
+            mListView.smoothScrollToPosition(current + ((bottom - top) / 2));
+        }
+    }
+
+    private void flushListData() {
         myAsyncTask = new MyAsyncTask();
         myAsyncTask.execute();
     }
@@ -138,6 +156,8 @@ public class MusicListFragment extends Fragment {
             musicListAdapterDataList.get(current).setPlaying(true);
         }
         musicListAdapter.notifyDataSetChanged();
+
+        scrollToMiddle();
     }
 
     /**

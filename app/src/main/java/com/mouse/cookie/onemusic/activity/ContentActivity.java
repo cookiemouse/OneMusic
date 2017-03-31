@@ -62,6 +62,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
 
     private ImageView mImageViewAblum;
     private TextView mTextViewTitle, mTextViewArtist;
+    private Button mButtonPlayOrPause, mButtonNext, mButtonUp;
 
     private DatabaseManager mDatabaseManager;
 
@@ -103,9 +104,9 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                     myHandler.obtainMessage(Msg.MSG_ERROR).sendToTarget();
                     break;
                 }
-                case Action.CHANGE: {
-                    current = intent.getIntExtra(Action.CHANGE_CURRENT, 0);
-                    myHandler.obtainMessage(Msg.MSG_CHANGE).sendToTarget();
+                case Action.START: {
+                    current = intent.getIntExtra(Action.START_CURRENT, 0);
+                    myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
                     break;
                 }
                 case Action.STOP: {
@@ -192,9 +193,9 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         mViewPager.setCurrentItem(1);
         mViewPager.setOffscreenPageLimit(3);
 
-        Button mButtonPlayOrPause = (Button) findViewById(R.id.btn_layout_bottom_playorpause);
-        Button mButtonNext = (Button) findViewById(R.id.btn_layout_bottom_next);
-        Button mButtonUp = (Button) findViewById(R.id.btn_layout_bottom_up);
+        mButtonPlayOrPause = (Button) findViewById(R.id.btn_layout_bottom_playorpause);
+        mButtonNext = (Button) findViewById(R.id.btn_layout_bottom_next);
+        mButtonUp = (Button) findViewById(R.id.btn_layout_bottom_up);
         mButtonPlayOrPause.setOnClickListener(this);
         mButtonNext.setOnClickListener(this);
         mButtonUp.setOnClickListener(this);
@@ -227,7 +228,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         IntentFilter mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(Action.UPDATE);
         mIntentFilter.addAction(Action.ERROR);
-        mIntentFilter.addAction(Action.CHANGE);
+        mIntentFilter.addAction(Action.START);
         mIntentFilter.addAction(Action.STOP);
         registerReceiver(mBroadcastReceiver, mIntentFilter);
     }
@@ -249,7 +250,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     //更新底部控件
-    private void updateUI(){
+    private void updateUI() {
         Cursor cursor = mDatabaseManager.queryAllData();
         if (current <= cursor.getCount()) {
             cursor.move(current + 1);
@@ -262,6 +263,16 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
             mTextViewTitle.setText(title);
             mTextViewArtist.setText(artist);
         }
+
+//        mButtonUp.setClickable(true);
+//        mButtonNext.setClickable(true);
+//
+//        if (0 == current) {
+//            mButtonUp.setClickable(false);
+//        }
+//        if (current == cursor.getColumnCount()) {
+//            mButtonNext.setClickable(false);
+//        }
     }
 
     @Override
@@ -309,7 +320,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                     break;
                 }
                 case Msg.MSG_UPDATE: {
-                    // TODO: 17-3-16 更新界面
+                    //更新界面
                     mProgressBar.setMax(duration);
                     mProgressBar.setProgress(progress);
                     break;
@@ -318,15 +329,15 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                     Toast.makeText(ContentActivity.this, strError, Toast.LENGTH_SHORT).show();
                     break;
                 }
-                case Msg.MSG_CHANGE: {
+                case Msg.MSG_START: {
                     //更新底部控件状态
                     updateUI();
                     //更新列表中的播放状态
                     musicListFragment.setPosition(current);
                     break;
                 }
-                case Msg.MSG_STOP:{
-                    mProgressBar.setProgress(0);
+                case Msg.MSG_STOP: {
+                    mProgressBar.setMax(0);
                     musicListFragment.setStop();
                     break;
                 }
@@ -374,5 +385,10 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     //提供当前current
     public int getCurrent() {
         return current;
+    }
+
+    //提供是否正在播放
+    public boolean isPlaying() {
+        return null != mPlayerService && mPlayerService.isPlaying();
     }
 }
