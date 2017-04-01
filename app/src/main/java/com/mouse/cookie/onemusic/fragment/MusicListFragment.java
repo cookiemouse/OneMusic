@@ -133,12 +133,12 @@ public class MusicListFragment extends Fragment {
     }
 
     //listview如果Item不可见滑动中间
-    private void scrollToMiddle(){
+    private void scrollToMiddle() {
         int top = mListView.getFirstVisiblePosition() + 1;
         int bottom = mListView.getLastVisiblePosition() - 1;
-        if (current < top){
+        if (current < top) {
             mListView.smoothScrollToPosition(current - ((bottom - top) / 2));
-        }else if (current > bottom){
+        } else if (current > bottom) {
             mListView.smoothScrollToPosition(current + ((bottom - top) / 2));
         }
     }

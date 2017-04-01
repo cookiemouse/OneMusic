@@ -8,6 +8,8 @@
     <ListView
         android:id="@+id/lv_fragment_musiclist"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/dp_64"
+        />
 
 </LinearLayout>

@@ -28,6 +28,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,11 +56,14 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     private int current;
     private String strError = "";
 
+    private ViewPager mViewPager;
+
     private MyFragmentPagerAdapter myFragmentPagerAdapter;
     private MusicListFragment musicListFragment = new MusicListFragment();
     private PlayingFragment mPlayingFragment = new PlayingFragment();
     private LyricFragment mLyricFragment = new LyricFragment();
 
+    private RelativeLayout mRelativeLayoutBottom;
     private ImageView mImageViewAblum;
     private TextView mTextViewTitle, mTextViewArtist;
     private Button mButtonPlayOrPause, mButtonNext, mButtonUp;
@@ -72,60 +76,14 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
 
     private ProgressBar mProgressBar;
 
-    //bindService
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(TAG, "onServiceConnected");
-            mPlayerService = ((PlayerService.MyBinder) service).getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.i(TAG, "onServiceDisconnected");
-            mPlayerService = null;
-        }
-    };
-
-    //广播播收器
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
-                case Action.UPDATE: {
-                    duration = intent.getIntExtra(Action.UPDATA_DURATIOn, 0);
-                    progress = intent.getIntExtra(Action.UPDATE_PROGRESS, 0);
-
-                    myHandler.obtainMessage(Msg.MSG_UPDATE).sendToTarget();
-                    break;
-                }
-                case Action.ERROR: {
-                    strError = intent.getStringExtra(Action.SEND_ERROR);
-                    myHandler.obtainMessage(Msg.MSG_ERROR).sendToTarget();
-                    break;
-                }
-                case Action.START: {
-                    current = intent.getIntExtra(Action.START_CURRENT, 0);
-                    myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
-                    break;
-                }
-                case Action.STOP: {
-                    myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
-                    break;
-                }
-                default: {
-                    Log.i(TAG, "Broadcast default " + intent.getAction());
-                }
-            }
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_content);
 
         initView();
+
+        setEventListener();
 
         applyPermission();
     }
@@ -173,11 +131,13 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     private void initView() {
         mDatabaseManager = new DatabaseManager(getApplicationContext());
 
+        mRelativeLayoutBottom = (RelativeLayout) findViewById(R.id.rl_activity_bottom);
+
         mImageViewAblum = (ImageView) findViewById(R.id.iv_layout_bottom_icon);
         mTextViewTitle = (TextView) findViewById(R.id.tv_layout_bottom_title);
         mTextViewArtist = (TextView) findViewById(R.id.tv_layout_bottom_name);
 
-        ViewPager mViewPager = (ViewPager) findViewById(R.id.vp_activity_content_);
+        mViewPager = (ViewPager) findViewById(R.id.vp_activity_content_);
         List<Fragment> mFragmentList = new ArrayList<>();
 
         mFragmentList.add(musicListFragment);
@@ -201,6 +161,45 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         mButtonUp.setOnClickListener(this);
 
         mProgressBar = (ProgressBar) findViewById(R.id.pb_layout_bottom_);
+    }
+
+    //设置监听器
+    private void setEventListener() {
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                switch (position) {
+                    case 0: {
+                        mRelativeLayoutBottom.setAlpha(1 - positionOffset);
+                        break;
+                    }
+                    case 1: {
+                        mRelativeLayoutBottom.setAlpha(Math.abs(positionOffset));
+                        break;
+                    }
+                    case 2: {
+                        mRelativeLayoutBottom.setAlpha(1 - positionOffset);
+                        break;
+                    }
+                    default: {
+                        Log.i(TAG, "onPageScrolled.default");
+                    }
+                }
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (position == 1) {
+                    mRelativeLayoutBottom.setVisibility(View.GONE);
+                } else {
+                    mRelativeLayoutBottom.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
     }
 
     //开启服务
@@ -274,6 +273,54 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
 //            mButtonNext.setClickable(false);
 //        }
     }
+
+    //bindService
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i(TAG, "onServiceConnected");
+            mPlayerService = ((PlayerService.MyBinder) service).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.i(TAG, "onServiceDisconnected");
+            mPlayerService = null;
+        }
+    };
+
+    //广播播收器
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case Action.UPDATE: {
+                    duration = intent.getIntExtra(Action.UPDATA_DURATIOn, 0);
+                    progress = intent.getIntExtra(Action.UPDATE_PROGRESS, 0);
+
+                    myHandler.obtainMessage(Msg.MSG_UPDATE).sendToTarget();
+                    break;
+                }
+                case Action.ERROR: {
+                    strError = intent.getStringExtra(Action.SEND_ERROR);
+                    myHandler.obtainMessage(Msg.MSG_ERROR).sendToTarget();
+                    break;
+                }
+                case Action.START: {
+                    current = intent.getIntExtra(Action.START_CURRENT, 0);
+                    myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
+                    break;
+                }
+                case Action.STOP: {
+                    myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
+                    break;
+                }
+                default: {
+                    Log.i(TAG, "Broadcast default " + intent.getAction());
+                }
+            }
+        }
+    };
 
     @Override
     public void onRequestPermissionsResult(int requestCode
