@@ -170,15 +170,15 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 switch (position) {
                     case 0: {
-                        mRelativeLayoutBottom.setAlpha(1 - positionOffset);
+                        mRelativeLayoutBottom.setAlpha(1f - positionOffset);
                         break;
                     }
                     case 1: {
-                        mRelativeLayoutBottom.setAlpha(Math.abs(positionOffset));
+                        mRelativeLayoutBottom.setAlpha(positionOffset);
                         break;
                     }
                     case 2: {
-                        mRelativeLayoutBottom.setAlpha(1 - positionOffset);
+                        mRelativeLayoutBottom.setAlpha(1f - positionOffset);
                         break;
                     }
                     default: {
@@ -189,15 +189,31 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
 
             @Override
             public void onPageSelected(int position) {
-                if (position == 1) {
-                    mRelativeLayoutBottom.setVisibility(View.GONE);
-                } else {
-                    mRelativeLayoutBottom.setVisibility(View.VISIBLE);
-                }
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
+                switch (state) {
+                    case ViewPager.SCROLL_STATE_DRAGGING: {
+                        mRelativeLayoutBottom.setVisibility(View.VISIBLE);
+                        break;
+                    }
+                    case ViewPager.SCROLL_STATE_SETTLING:{
+                        if (mViewPager.getCurrentItem() == 1) {
+                            mRelativeLayoutBottom.setVisibility(View.GONE);
+                        }
+                        break;
+                    }
+                    case ViewPager.SCROLL_STATE_IDLE: {
+//                        if (mViewPager.getCurrentItem() == 1) {
+//                            mRelativeLayoutBottom.setVisibility(View.GONE);
+//                        }
+                        break;
+                    }
+                    default: {
+                        Log.i(TAG, "onPageScrollStateChanged.default");
+                    }
+                }
             }
         });
     }
