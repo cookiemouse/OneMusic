@@ -5,12 +5,14 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
 
+import com.mouse.cookie.onemusic.data.PlayState;
+
 import java.io.IOException;
 
 /**
  * Created by xp on 17-3-15.
  * 提供对外的方法有setSource、setLoop、isLoog、pause、replay、setProgress、destory
- * 对外回调PlayListener==>onCompletion、onStatuChanged、onError
+ * 对外回调PlayListener==>onCompletion、onStateChanged、onError
  * mediaPlayer.prepare();
  * mediaPlayer.prepareAsync();
  * mediaPlayer.start();
@@ -55,7 +57,7 @@ public class MediaManager {
             public void onPrepared(MediaPlayer mp) {
                 mediaPlayer.start();
                 if (null != mPlayListener) {
-                    mPlayListener.onStatuChanged(isPause);
+                    mPlayListener.onStateChanged(PlayState.Start);
                 } else {
                     throw new UnsupportedOperationException("PalyListener is null");
                 }
@@ -90,7 +92,7 @@ public class MediaManager {
             public void onSeekComplete(MediaPlayer mp) {
                 mediaPlayer.start();
                 if (null != mPlayListener) {
-                    mPlayListener.onStatuChanged(isPause);
+                    mPlayListener.onStateChanged(PlayState.Start);
                 } else {
                     throw new UnsupportedOperationException("PalyListener is null");
                 }
@@ -156,7 +158,7 @@ public class MediaManager {
             isPause = true;
 
             if (null != mPlayListener) {
-                mPlayListener.onStatuChanged(true);
+                mPlayListener.onStateChanged(PlayState.Pause);
             } else {
                 throw new UnsupportedOperationException("PalyListener is null");
             }
@@ -169,17 +171,19 @@ public class MediaManager {
             isPause = false;
 
             if (null != mPlayListener) {
-                mPlayListener.onStatuChanged(false);
+                mPlayListener.onStateChanged(PlayState.Start);
             } else {
                 throw new UnsupportedOperationException("PalyListener is null");
             }
         }
     }
 
-    public void setProgress(int second) {
-        if (null != mediaPlayer && mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-            mediaPlayer.seekTo(second * 1000);
+    public void setProgress(int ms) {
+        if (null != mediaPlayer) {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+            }
+            mediaPlayer.seekTo(ms);
         } else {
             throw new UnsupportedOperationException("media seekto failure");
         }
@@ -200,7 +204,7 @@ public class MediaManager {
         void onCompletion();
 
         //播放状态改变
-        void onStatuChanged(boolean paused);
+        void onStateChanged(int state);
 
         //播放出错
         void onError(String error);

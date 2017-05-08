@@ -70,7 +70,7 @@
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/dp_10"
         android:layout_marginRight="@dimen/dp_10"
-        android:text="Button"/>
+        android:background="@drawable/ic_next_24"/>
 
     <Button
         android:id="@+id/btn_layout_bottom_playorpause"
@@ -79,7 +79,7 @@
         android:layout_centerVertical="true"
         android:layout_toLeftOf="@+id/btn_layout_bottom_next"
         android:layout_toStartOf="@+id/btn_layout_bottom_next"
-        android:text="Button"/>
+        android:background="@drawable/play_pause_switch"/>
 
     <Button
         android:id="@+id/btn_layout_bottom_up"
@@ -88,6 +88,6 @@
         android:layout_centerVertical="true"
         android:layout_toLeftOf="@+id/btn_layout_bottom_playorpause"
         android:layout_toStartOf="@+id/btn_layout_bottom_playorpause"
-        android:text="Button"/>
+        android:background="@drawable/ic_previous_24"/>
 
 </RelativeLayout>

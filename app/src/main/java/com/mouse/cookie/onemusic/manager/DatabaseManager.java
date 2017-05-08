@@ -27,7 +27,7 @@ public class DatabaseManager {
     }
 
     //增
-    public void inserData(MusicData musicData) {
+    public void insertData(MusicData musicData) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Path.DATABASE_TABLE_TITLE, musicData.getTitle());
         contentValues.put(Path.DATABASE_TABLE_PATH, musicData.getPath());
@@ -69,7 +69,7 @@ public class DatabaseManager {
                 Path.DATABASE_TABLE
                 , new String[]{Path.DATABASE_TABLE_PATH}
                 , null, null, null, null, null);
-        if (cursor.getCount() >= position && position >= 0){
+        if (cursor.getCount() > position && position >= 0){
             cursor.move(position + 1);
             Log.i(TAG, "queryPath.position-->" + position);
             Log.i(TAG, "columnIndex-->" + cursor.getColumnIndex(Path.DATABASE_TABLE_PATH));
@@ -84,7 +84,6 @@ public class DatabaseManager {
     private byte[] bitmapToTyte(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);//转换质量为100%
-        byte[] byteArray = stream.toByteArray();
-        return byteArray;
+        return stream.toByteArray();
     }
 }

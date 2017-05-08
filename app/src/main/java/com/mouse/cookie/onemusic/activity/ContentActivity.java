@@ -21,7 +21,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -46,7 +45,7 @@ import com.mouse.cookie.onemusic.service.PlayerService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContentActivity extends AppCompatActivity implements View.OnClickListener {
+public class ContentActivity extends BaseActivity implements View.OnClickListener {
 
     private final static String TAG = "ContentActivity";
     private final static String PERMISSION_READ_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
@@ -79,6 +78,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_content);
 
         initView();
@@ -198,7 +198,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                         mRelativeLayoutBottom.setVisibility(View.VISIBLE);
                         break;
                     }
-                    case ViewPager.SCROLL_STATE_SETTLING:{
+                    case ViewPager.SCROLL_STATE_SETTLING: {
                         if (mViewPager.getCurrentItem() == 1) {
                             mRelativeLayoutBottom.setVisibility(View.GONE);
                         }
@@ -245,6 +245,7 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         mIntentFilter.addAction(Action.ERROR);
         mIntentFilter.addAction(Action.START);
         mIntentFilter.addAction(Action.STOP);
+        mIntentFilter.addAction(Action.NO_MUSIC);
         registerReceiver(mBroadcastReceiver, mIntentFilter);
     }
 
@@ -267,17 +268,28 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     //更新底部控件
     private void updateUI() {
         Cursor cursor = mDatabaseManager.queryAllData();
-        if (current <= cursor.getCount()) {
+
+        Bitmap bitmap = null;
+
+        if (current <= cursor.getCount() && cursor.getCount() > 0) {
             cursor.move(current + 1);
             String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
             String artist = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ARTIST));
             byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
-            Bitmap bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
+            bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
 
             mImageViewAblum.setImageBitmap(bitmap);
             mTextViewTitle.setText(title);
             mTextViewArtist.setText(artist);
         }
+
+        if (isPlaying()) {
+            mButtonPlayOrPause.setSelected(true);
+        } else {
+            mButtonPlayOrPause.setSelected(false);
+        }
+
+        mPlayingFragment.updateUI(isPlaying(), bitmap);
 
 //        mButtonUp.setClickable(true);
 //        mButtonNext.setClickable(true);
@@ -310,6 +322,10 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
+                case Action.NO_MUSIC: {
+                    showChoiceFileDialog();
+                    break;
+                }
                 case Action.UPDATE: {
                     duration = intent.getIntExtra(Action.UPDATA_DURATIOn, 0);
                     progress = intent.getIntExtra(Action.UPDATE_PROGRESS, 0);
@@ -374,6 +390,26 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         dialog.show();
     }
 
+    //弹出是否选择文件目录对话框
+    private void showChoiceFileDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ContentActivity.this);
+        builder.setMessage("未找到音乐资源，现在去选择存放音乐的目录？");
+        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                openFile();
+            }
+        });
+        builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // do nothing
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     private class MyHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -386,6 +422,8 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
                     //更新界面
                     mProgressBar.setMax(duration);
                     mProgressBar.setProgress(progress);
+
+                    mPlayingFragment.updateSeek(progress, duration);
                     break;
                 }
                 case Msg.MSG_ERROR: {
@@ -416,17 +454,25 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_layout_bottom_playorpause: {
-                mPlayerService.playOrPause();
+
+                play();
+
+                if (isPlaying()) {
+                    mButtonPlayOrPause.setSelected(true);
+                } else {
+                    mButtonPlayOrPause.setSelected(false);
+                }
+
 //                openFile();
                 Log.i(TAG, "PlayOrPause Button Click");
                 break;
             }
             case R.id.btn_layout_bottom_next: {
-                mPlayerService.playNext();
+                playNext();
                 break;
             }
             case R.id.btn_layout_bottom_up: {
-                mPlayerService.playUp();
+                playUp();
                 break;
             }
             default: {
@@ -440,9 +486,27 @@ public class ContentActivity extends AppCompatActivity implements View.OnClickLi
         myFragmentPagerAdapter.notifyDataSetChanged();
     }
 
+    //播放音乐，给Fragment使用
+    public void play() {
+        mPlayerService.playOrPause();
+    }
+
+    public void playNext() {
+        mPlayerService.playNext();
+    }
+
+    public void playUp() {
+        mPlayerService.playUp();
+    }
+
     //播放音乐,待定
     public void play(int position) {
         mPlayerService.play(position);
+    }
+
+    //调整播放进度
+    public void setPlayProgress(int progress) {
+        mPlayerService.setProgress(progress);
     }
 
     //提供当前current

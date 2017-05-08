@@ -1,7 +1,6 @@
 package com.mouse.cookie.onemusic.activity;
 
 import android.content.DialogInterface;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -9,12 +8,9 @@ import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,8 +19,6 @@ import com.mouse.cookie.onemusic.adapter.FileManagerAdapter;
 import com.mouse.cookie.onemusic.data.FileManagerAdapetrData;
 import com.mouse.cookie.onemusic.data.FileType;
 import com.mouse.cookie.onemusic.data.MusicData;
-import com.mouse.cookie.onemusic.data.MusicListAdapterData;
-import com.mouse.cookie.onemusic.data.Path;
 import com.mouse.cookie.onemusic.manager.DatabaseManager;
 import com.mouse.cookie.onemusic.manager.FileManager;
 import com.mouse.cookie.onemusic.manager.MediaDataManager;
@@ -171,7 +165,7 @@ public class FileManagerActivity extends AppCompatActivity {
 
                 MusicData musicData = new MusicData(title, path, album, artist, bitRate, scaleBitmap(bitmap));
 
-                mDatabaseManager.inserData(musicData);
+                mDatabaseManager.insertData(musicData);
             }
         }
     }
@@ -204,7 +198,7 @@ public class FileManagerActivity extends AppCompatActivity {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
         Matrix matrix = new Matrix();
-        matrix.preScale(0.2f, 0.2f);
+        matrix.preScale(0.5f, 0.5f);
         Bitmap bitmapReturn = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, false);
         if (bitmap.equals(bitmapReturn)) {
             return bitmapReturn;

@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.mouse.cookie.onemusic.data.Action;
 import com.mouse.cookie.onemusic.data.Msg;
+import com.mouse.cookie.onemusic.data.PlayState;
 import com.mouse.cookie.onemusic.manager.DatabaseManager;
 import com.mouse.cookie.onemusic.manager.MediaDataManager;
 import com.mouse.cookie.onemusic.manager.MediaManager;
@@ -72,12 +73,32 @@ public class PlayerService extends Service {
             }
 
             @Override
-            public void onStatuChanged(boolean paused) {
-                if (paused) {
-                    myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
-                } else {
-                    myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
+            public void onStateChanged(int state) {
+                switch (state) {
+                    case PlayState.Start: {
+                        myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
+                        myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
+                        break;
+                    }
+                    case PlayState.Pause: {
+                        myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
+                        break;
+                    }
+                    case PlayState.Stop: {
+                        myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
+                        break;
+                    }
+                    default:{
+                        Log.d(TAG, "onStatuChanged: default");
+                    }
                 }
+
+//                if (paused) {
+//                    myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
+//                } else {
+//                    myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
+//                    myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
+//                }
             }
 
             @Override
@@ -189,6 +210,10 @@ public class PlayerService extends Service {
                     sendErrorBroadcast((String) msg.obj);
                     break;
                 }
+                case Msg.MSG_NO_MUSIC: {
+                    sendNoMusicBroadcast();
+                    break;
+                }
                 default: {
                     Log.i(TAG, "default");
                 }
@@ -219,6 +244,12 @@ public class PlayerService extends Service {
         mediaManager.setResource(getApplicationContext(), uri);
         mediaDataManager.setResource(uri);
         TEST_URI = uri;
+    }
+
+    //发送无歌曲错误，去添加歌曲目录
+    private void sendNoMusicBroadcast() {
+        Intent intent = new Intent(Action.NO_MUSIC);
+        sendBroadcast(intent);
     }
 
     //发送广播更新播放状态
@@ -258,12 +289,12 @@ public class PlayerService extends Service {
         Log.i(TAG, "paly or pause");
         if (mediaManager.isPlaying()) {
             mediaManager.pause();
-            myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
+//            myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
             abandonAudioFocus();
         } else if (mediaManager.isPause()) {
             applyAudioFocus();
             mediaManager.replay();
-            myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
+//            myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
         } else {
             applyAudioFocus();
             play(current);
@@ -275,7 +306,9 @@ public class PlayerService extends Service {
         TEST_PATH = mDatabaseManager.queryPath(position);
         if (null != TEST_PATH) {
             setResource(TEST_PATH);
-            myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
+//            myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
+        } else {
+            myHandler.obtainMessage(Msg.MSG_NO_MUSIC).sendToTarget();
         }
     }
 
@@ -283,7 +316,7 @@ public class PlayerService extends Service {
         if (null != uri) {
             TEST_URI = uri;
             setResource(uri);
-            myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
+//            myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
         }
     }
 
