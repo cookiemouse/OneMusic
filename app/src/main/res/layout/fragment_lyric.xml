@@ -1,13 +1,14 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.mouse.cookie.onemusic.fragment.LyricFragment">
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="com.mouse.cookie.onemusic.fragment.LyricFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <me.wcy.lrcview.LrcView
+        android:id="@+id/lv_fragment_lyric"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_marginBottom="@dimen/dp_64"
+        />
 
 </FrameLayout>

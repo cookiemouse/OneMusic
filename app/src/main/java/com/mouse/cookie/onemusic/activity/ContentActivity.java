@@ -244,6 +244,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
         mIntentFilter.addAction(Action.UPDATE);
         mIntentFilter.addAction(Action.ERROR);
         mIntentFilter.addAction(Action.START);
+        mIntentFilter.addAction(Action.PAUSE);
         mIntentFilter.addAction(Action.STOP);
         mIntentFilter.addAction(Action.NO_MUSIC);
         registerReceiver(mBroadcastReceiver, mIntentFilter);
@@ -283,13 +284,9 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
             mTextViewArtist.setText(artist);
         }
 
-        if (isPlaying()) {
-            mButtonPlayOrPause.setSelected(true);
-        } else {
-            mButtonPlayOrPause.setSelected(false);
-        }
+        mButtonPlayOrPause.setSelected(true);
 
-        mPlayingFragment.updateUI(isPlaying(), bitmap);
+        mPlayingFragment.updateUI(bitmap);
 
 //        mButtonUp.setClickable(true);
 //        mButtonNext.setClickable(true);
@@ -300,6 +297,11 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 //        if (current == cursor.getColumnCount()) {
 //            mButtonNext.setClickable(false);
 //        }
+    }
+
+    private void updateUIPause() {
+        mButtonPlayOrPause.setSelected(false);
+        mPlayingFragment.updateUIPause();
     }
 
     //bindService
@@ -341,6 +343,10 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
                 case Action.START: {
                     current = intent.getIntExtra(Action.START_CURRENT, 0);
                     myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
+                    break;
+                }
+                case Action.PAUSE: {
+                    updateUIPause();
                     break;
                 }
                 case Action.STOP: {
@@ -455,7 +461,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
         switch (v.getId()) {
             case R.id.btn_layout_bottom_playorpause: {
 
-                play();
+                playOrPause();
 
                 if (isPlaying()) {
                     mButtonPlayOrPause.setSelected(true);
@@ -487,7 +493,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     }
 
     //播放音乐，给Fragment使用
-    public void play() {
+    public void playOrPause() {
         mPlayerService.playOrPause();
     }
 

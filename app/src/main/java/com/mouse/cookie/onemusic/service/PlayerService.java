@@ -81,7 +81,7 @@ public class PlayerService extends Service {
                         break;
                     }
                     case PlayState.Pause: {
-                        myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
+                        myHandler.obtainMessage(Msg.MSG_PAUSE).sendToTarget();
                         break;
                     }
                     case PlayState.Stop: {
@@ -201,6 +201,10 @@ public class PlayerService extends Service {
                     sendStartBroadcast();
                     break;
                 }
+                case Msg.MSG_PAUSE: {
+                    sendPauseBroadcast();
+                    break;
+                }
                 case Msg.MSG_STOP: {
                     sendStopBroadcast();
                     playNext();
@@ -264,6 +268,12 @@ public class PlayerService extends Service {
     private void sendStartBroadcast() {
         Intent intent = new Intent(Action.START);
         intent.putExtra(Action.START_CURRENT, current);
+        sendBroadcast(intent);
+    }
+
+    //发送Pause广播
+    private void sendPauseBroadcast(){
+        Intent intent = new Intent(Action.PAUSE);
         sendBroadcast(intent);
     }
 

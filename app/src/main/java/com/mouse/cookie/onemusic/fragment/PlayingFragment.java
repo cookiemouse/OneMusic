@@ -2,6 +2,8 @@ package com.mouse.cookie.onemusic.fragment;
 
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -61,7 +63,7 @@ public class PlayingFragment extends Fragment {
         mButtonPlayOrPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mContentActivity.play();
+                mContentActivity.playOrPause();
             }
         });
 
@@ -108,7 +110,7 @@ public class PlayingFragment extends Fragment {
     }
 
     //更新UI
-    public void updateUI(boolean select, final Bitmap bitmap) {
+    public void updateUI(Bitmap bitmap) {
 
         if (null == mButtonPlayOrPause || null == mImageViewIcon) {
             return;
@@ -126,23 +128,17 @@ public class PlayingFragment extends Fragment {
 
                     Bitmap bmp = mImageViewIcon.getDrawingCache();
 
-                    bmp = FastBlur.doBlur(bmp, 200, true);
+                    bmp = FastBlur.doBlur(bmp, 150, true);
                     BitmapDrawable bd = new BitmapDrawable(bmp);
                     mLinearLayout.setBackground(bd);
                     return true;
                 }
             });
-
-//            mLinearLayout.setBackground();
         }
 //        mTextViewTitle.setText(title);
 //        mTextViewArtist.setText(artist);
 
-        if (select) {
-            mButtonPlayOrPause.setSelected(true);
-        } else {
-            mButtonPlayOrPause.setSelected(false);
-        }
+        mButtonPlayOrPause.setSelected(true);
 
 //        mButtonUp.setClickable(true);
 //        mButtonNext.setClickable(true);
@@ -153,6 +149,27 @@ public class PlayingFragment extends Fragment {
 //        if (current == cursor.getColumnCount()) {
 //            mButtonNext.setClickable(false);
 //        }
+    }
+
+    public void updateUIPause() {
+        mButtonPlayOrPause.setSelected(false);
+    }
+
+    //压缩图片
+    private Bitmap scaleBitmap(Bitmap bitmap) {
+        if (null == bitmap) {
+            return null;
+        }
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        Matrix matrix = new Matrix();
+        matrix.preScale(0.5f, 0.5f);
+        Bitmap bitmapReturn = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, false);
+        if (bitmap.equals(bitmapReturn)) {
+            return bitmapReturn;
+        }
+        bitmap.recycle();
+        return bitmapReturn;
     }
 
     private String formatTime(int time) {

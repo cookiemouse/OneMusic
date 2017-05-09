@@ -1,16 +1,17 @@
 package com.mouse.cookie.onemusic.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.WindowManager;
 
 import com.mouse.cookie.onemusic.R;
 
-public class GuideActivity extends AppCompatActivity {
+public class GuideActivity extends Activity {
 
-    private final static int DELAY = 2000;
+    private final static int DELAY = 500;
 
     private MyHandler myHandler = new MyHandler();
     private Runnable mRunnable;
@@ -18,6 +19,7 @@ public class GuideActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_guide);
 
         mRunnable = new Runnable() {

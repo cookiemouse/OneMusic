@@ -8,23 +8,23 @@
 
     <Button
         android:id="@+id/btn_layout_playing_pause_play"
-        android:layout_width="@dimen/dp_64"
-        android:layout_height="@dimen/dp_64"
+        android:layout_width="@dimen/dp_48"
+        android:layout_height="@dimen/dp_48"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:background="@drawable/play_pause_switch_cycle"/>
 
     <Button
         android:id="@+id/btn_layout_playing_up"
-        android:layout_width="@dimen/dp_56"
-        android:layout_height="@dimen/dp_56"
+        android:layout_width="@dimen/dp_40"
+        android:layout_height="@dimen/dp_40"
         android:layout_centerVertical="true"
         android:background="@drawable/ic_previous_64"/>
 
     <Button
         android:id="@+id/btn_layout_playing_next"
-        android:layout_width="@dimen/dp_56"
-        android:layout_height="@dimen/dp_56"
+        android:layout_width="@dimen/dp_40"
+        android:layout_height="@dimen/dp_40"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"

@@ -18,5 +18,6 @@ public class Action {
     public final static String START = "com.mouse.cookie.start";
     public final static String START_CURRENT = "com.mouse.cookie.start_current";
 
+    public final static String PAUSE = "com.mouse.cookie.pause";
     public final static String STOP = "com.mouse.cookie.stop";
 }
