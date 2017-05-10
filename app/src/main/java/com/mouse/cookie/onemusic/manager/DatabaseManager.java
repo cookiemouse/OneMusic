@@ -6,8 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.util.Log;
+
 import com.mouse.cookie.onemusic.data.MusicData;
 import com.mouse.cookie.onemusic.data.Path;
+
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -35,6 +37,7 @@ public class DatabaseManager {
         contentValues.put(Path.DATABASE_TABLE_ARTIST, musicData.getArtist());
         contentValues.put(Path.DATABASE_TABLE_BITRATE, musicData.getBitRate());
         contentValues.put(Path.DATABASE_TABLE_PIC, bitmapToTyte(musicData.getPic()));
+        contentValues.put(Path.DATABASE_TABLE_DURATION, musicData.getDuration());
         mSqLiteDatabase.insert(Path.DATABASE_TABLE, null, contentValues);
     }
 
@@ -59,7 +62,8 @@ public class DatabaseManager {
                         , Path.DATABASE_TABLE_ALBUM
                         , Path.DATABASE_TABLE_ARTIST
                         , Path.DATABASE_TABLE_BITRATE
-                        , Path.DATABASE_TABLE_PIC}
+                        , Path.DATABASE_TABLE_PIC
+                        , Path.DATABASE_TABLE_DURATION}
                 , null, null, null, null, null);
     }
 
@@ -69,7 +73,7 @@ public class DatabaseManager {
                 Path.DATABASE_TABLE
                 , new String[]{Path.DATABASE_TABLE_PATH}
                 , null, null, null, null, null);
-        if (cursor.getCount() > position && position >= 0){
+        if (cursor.getCount() > position && position >= 0) {
             cursor.move(position + 1);
             Log.i(TAG, "queryPath.position-->" + position);
             Log.i(TAG, "columnIndex-->" + cursor.getColumnIndex(Path.DATABASE_TABLE_PATH));

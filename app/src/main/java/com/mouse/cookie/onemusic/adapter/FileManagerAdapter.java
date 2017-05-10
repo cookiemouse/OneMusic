@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mouse.cookie.onemusic.R;
-import com.mouse.cookie.onemusic.data.FileManagerAdapetrData;
+import com.mouse.cookie.onemusic.data.FileManagerAdapterData;
 import com.mouse.cookie.onemusic.data.FileType;
 
 import java.util.List;
@@ -21,9 +21,9 @@ import java.util.List;
 public class FileManagerAdapter extends BaseAdapter {
 
     private Context context;
-    private List<FileManagerAdapetrData> mDataList;
+    private List<FileManagerAdapterData> mDataList;
 
-    public FileManagerAdapter(Context context, List<FileManagerAdapetrData> mDataList) {
+    public FileManagerAdapter(Context context, List<FileManagerAdapterData> mDataList) {
         this.context = context;
         this.mDataList = mDataList;
     }
@@ -34,7 +34,7 @@ public class FileManagerAdapter extends BaseAdapter {
     }
 
     @Override
-    public FileManagerAdapetrData getItem(int position) {
+    public FileManagerAdapterData getItem(int position) {
         return mDataList.get(position);
     }
 
@@ -47,7 +47,7 @@ public class FileManagerAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         ViewHolder mViewHolder = null;
-        FileManagerAdapetrData data = mDataList.get(position);
+        FileManagerAdapterData data = mDataList.get(position);
 
         if (null == convertView) {
             convertView = LayoutInflater.from(context).inflate(R.layout.adapter_filemanager, null);

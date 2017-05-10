@@ -58,7 +58,8 @@ import okhttp3.Response;
 public class ContentActivity extends BaseActivity implements View.OnClickListener {
 
     private final static String TAG = "ContentActivity";
-    private final static String PERMISSION_READ_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
+    private final static String PERMISSION_WRITE_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
+//    private final static String PERMISSION_READ_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
     private final static int PERMISSION_REQUEST_CODE = 1;
 
     private int duration, progress;
@@ -84,9 +85,6 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     private MyHandler myHandler = new MyHandler();
 
     private ProgressBar mProgressBar;
-
-    private NetOperator mNetOperator;
-    private String song;//仅做测试，一定要改
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,8 +141,6 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     //初始化视图
     private void initView() {
         mDatabaseManager = new DatabaseManager(getApplicationContext());
-
-        mNetOperator = NetOperator.getInstance();
 
         mRelativeLayoutBottom = (RelativeLayout) findViewById(R.id.rl_activity_bottom);
 
@@ -267,10 +263,10 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
     //运行时权限
     private void applyPermission() {
-        if (ContextCompat.checkSelfPermission(ContentActivity.this, PERMISSION_READ_STORAGE) !=
+        if (ContextCompat.checkSelfPermission(ContentActivity.this, PERMISSION_WRITE_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(ContentActivity.this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     PERMISSION_REQUEST_CODE);
         }
     }
@@ -297,8 +293,6 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
             mImageViewAblum.setImageBitmap(bitmap);
             mTextViewTitle.setText(title);
             mTextViewArtist.setText(artist);
-
-            song = title;
         }
 
         mButtonPlayOrPause.setSelected(true);
@@ -459,12 +453,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
                     updateUI();
                     //更新列表中的播放状态
                     musicListFragment.setPosition(current);
-                    myHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            downloadLyric(song, duration);
-                        }
-                    }, 1000);
+                    mLyricFragment.setPosition(current);
                     break;
                 }
                 case Msg.MSG_STOP: {
@@ -509,48 +498,6 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
                 Log.i(TAG, "onClick default");
             }
         }
-    }
-
-    private void downloadLyric(String song, int mills) {
-        mNetOperator.searchLyric(song, mills, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.d(TAG, "onFailure: exception-->" + e);
-                mLyricFragment.setLrc(null);
-                mLyricFragment.setLabel("暂无歌词");
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String result = response.body().string();
-                Gson gson = new Gson();
-                LyricSearchBean lyricSearchBean = gson.fromJson(result, LyricSearchBean.class);
-                if (lyricSearchBean.getStatus() == 200) {
-                    mNetOperator.downloadLyric(lyricSearchBean.getProposal()
-                            , lyricSearchBean.getCandidates().get(0).getAccesskey()
-                            , new Callback() {
-                                @Override
-                                public void onFailure(Call call, IOException e) {
-                                    Log.d(TAG, "onFailure: exception-->" + e);
-                                    mLyricFragment.setLrc(null);
-                                    mLyricFragment.setLabel("暂无歌词");
-                                }
-
-                                @Override
-                                public void onResponse(Call call, Response response) throws IOException {
-                                    String result = response.body().string();
-                                    Gson gson = new Gson();
-                                    LyricContentBean lyricContentBean = gson.fromJson(result, LyricContentBean.class);
-                                    String decodedString = new String(Base64.decode(lyricContentBean.getContent(), Base64.DEFAULT));
-                                    mLyricFragment.setLrc(decodedString);
-                                }
-                            });
-                } else {
-                    mLyricFragment.setLrc(null);
-                    mLyricFragment.setLabel("暂无歌词");
-                }
-            }
-        });
     }
 
     //更新Viewpager Adapter

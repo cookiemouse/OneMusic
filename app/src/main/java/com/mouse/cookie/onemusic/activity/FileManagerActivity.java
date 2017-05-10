@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 import com.mouse.cookie.onemusic.R;
 import com.mouse.cookie.onemusic.adapter.FileManagerAdapter;
-import com.mouse.cookie.onemusic.data.FileManagerAdapetrData;
+import com.mouse.cookie.onemusic.data.FileManagerAdapterData;
 import com.mouse.cookie.onemusic.data.FileType;
 import com.mouse.cookie.onemusic.data.MusicData;
 import com.mouse.cookie.onemusic.manager.DatabaseManager;
@@ -34,7 +34,7 @@ public class FileManagerActivity extends AppCompatActivity {
     private Button mButtonAdd;
 
     private FileManagerAdapter mFileManagerAdapter;
-    private List<FileManagerAdapetrData> mFileManagerAdapetrDataList;
+    private List<FileManagerAdapterData> mFileManagerAdapterDataList;
     private FileManager mFileManager;
 
     private String pathChoiced;
@@ -62,11 +62,11 @@ public class FileManagerActivity extends AppCompatActivity {
         mListViewShow = (ListView) findViewById(R.id.lv_activity_filemanager_show);
         mButtonAdd = (Button) findViewById(R.id.btn_activity_filemanager_add);
 
-        mFileManagerAdapetrDataList = mFileManager.getList();
+        mFileManagerAdapterDataList = mFileManager.getList();
 
         setNavigationPath();
 
-        mFileManagerAdapter = new FileManagerAdapter(FileManagerActivity.this, mFileManagerAdapetrDataList);
+        mFileManagerAdapter = new FileManagerAdapter(FileManagerActivity.this, mFileManagerAdapterDataList);
 
         mListViewShow.setAdapter(mFileManagerAdapter);
     }
@@ -77,9 +77,9 @@ public class FileManagerActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // TODO: 17-3-19 进入目录
-                FileManagerAdapetrData data = mFileManagerAdapetrDataList.get(position);
+                FileManagerAdapterData data = mFileManagerAdapterDataList.get(position);
                 if (data.isDir()) {
-                    mFileManagerAdapetrDataList.clear();
+                    mFileManagerAdapterDataList.clear();
                     mFileManager.enterFolder(data.getName());
                     mFileManagerAdapter.notifyDataSetChanged();
                     mListViewShow.scrollTo(0, 0);
@@ -106,7 +106,7 @@ public class FileManagerActivity extends AppCompatActivity {
 //        super.onBackPressed();
         //这里为什么不用赋值呢？
         // 因为在上面进入目录的时候用的是FileManager里的list的句柄，所有当FileManager里的list发生改变之后，这里只需要notify即可
-        List<FileManagerAdapetrData> mDataListBack = mFileManager.backFolder();
+        List<FileManagerAdapterData> mDataListBack = mFileManager.backFolder();
 
         if (null != mDataListBack) {
             mFileManagerAdapter.notifyDataSetChanged();
@@ -151,7 +151,7 @@ public class FileManagerActivity extends AppCompatActivity {
 
     //将文件名及路径添加入数据库
     private void insertIntoDatabase() {
-        for (FileManagerAdapetrData data : mFileManagerAdapetrDataList) {
+        for (FileManagerAdapterData data : mFileManagerAdapterDataList) {
             String type = data.getType();
             if (type.equals(FileType.MP3) || type.equals(FileType.WMA) || type.equals(FileType.MID)) {
                 String path = pathChoiced + "/" + data.getName();
@@ -160,10 +160,11 @@ public class FileManagerActivity extends AppCompatActivity {
                 String title = mediaDataManager.getTitle();
                 String artist = mediaDataManager.getArtist();
                 String bitRate = mediaDataManager.getBitRate();
+                String duration = mediaDataManager.getDuration();
                 byte[] embeddedPicture = mediaDataManager.getEmbeddedPicture();
                 Bitmap bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
 
-                MusicData musicData = new MusicData(title, path, album, artist, bitRate, scaleBitmap(bitmap));
+                MusicData musicData = new MusicData(title, path, album, artist, bitRate, scaleBitmap(bitmap), duration);
 
                 mDatabaseManager.insertData(musicData);
             }

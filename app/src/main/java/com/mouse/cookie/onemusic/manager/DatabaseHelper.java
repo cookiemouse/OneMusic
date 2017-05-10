@@ -51,7 +51,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + Path.DATABASE_TABLE_BITRATE
                 + " TEXT,"
                 + Path.DATABASE_TABLE_PIC
-                + " BLOB"
+                + " BLOB,"
+                + Path.DATABASE_TABLE_DURATION
+                + " TEXT"
                 + ")";
         Log.i(TAG, sql);
         db.execSQL(sql);

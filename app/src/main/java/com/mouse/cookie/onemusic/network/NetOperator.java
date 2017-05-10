@@ -1,14 +1,10 @@
 package com.mouse.cookie.onemusic.network;
 
 import android.util.Log;
-
-import java.io.IOException;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * Created by cookie on 17-5-9.
@@ -44,7 +40,7 @@ public class NetOperator {
         return mNetOperator;
     }
 
-    public void searchLyric(String song, int mills, Callback callback) {
+    public void searchLyric(String song, String mills, Callback callback) {
         Request.Builder builder = new Request.Builder();
         builder.url(URL_SEARCH + "?ver=1&man=yes&client=pc" + "&keyword=" + song + "&duration=" + mills);
         mRequest = builder.build();

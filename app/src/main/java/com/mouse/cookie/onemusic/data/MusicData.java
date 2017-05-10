@@ -13,14 +13,16 @@ public class MusicData {
     private String artist;
     private String bitRate;
     private Bitmap pic;
+    private String duration;
 
-    public MusicData(String title, String path, String album, String artist, String bitRate, Bitmap pic) {
+    public MusicData(String title, String path, String album, String artist, String bitRate, Bitmap pic, String duration) {
         this.title = title;
         this.path = path;
         this.album = album;
         this.artist = artist;
         this.bitRate = bitRate;
         this.pic = pic;
+        this.duration = duration;
     }
 
     public String getTitle() {
@@ -69,5 +71,13 @@ public class MusicData {
 
     public void setPic(Bitmap pic) {
         this.pic = pic;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
     }
 }

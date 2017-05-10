@@ -118,20 +118,20 @@ public class PlayingFragment extends Fragment {
             mImageViewIcon.setImageBitmap(bitmap);
 //            bitmap = FastBlur.doBlur(bitmap, 20, true);
 
-            mImageViewIcon.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    mImageViewIcon.getViewTreeObserver().removeOnPreDrawListener(this);
-                    mImageViewIcon.buildDrawingCache();
-
-                    Bitmap bmp = mImageViewIcon.getDrawingCache();
-
-                    bmp = FastBlur.doBlur(bmp, 150, true);
-                    BitmapDrawable bd = new BitmapDrawable(bmp);
-                    mLinearLayout.setBackground(bd);
-                    return true;
-                }
-            });
+//            mImageViewIcon.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+//                @Override
+//                public boolean onPreDraw() {
+//                    mImageViewIcon.getViewTreeObserver().removeOnPreDrawListener(this);
+//                    mImageViewIcon.buildDrawingCache();
+//
+//                    Bitmap bmp = mImageViewIcon.getDrawingCache();
+//
+//                    bmp = FastBlur.doBlur(bmp, 150, true);
+//                    BitmapDrawable bd = new BitmapDrawable(bmp);
+//                    mLinearLayout.setBackground(bd);
+//                    return true;
+//                }
+//            });
         }
 //        mTextViewTitle.setText(title);
 //        mTextViewArtist.setText(artist);

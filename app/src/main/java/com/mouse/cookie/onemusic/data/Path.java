@@ -13,6 +13,7 @@ public class Path {
     public static final String DATABASE_TABLE_ARTIST = "table_artist";
     public static final String DATABASE_TABLE_BITRATE = "table_bitRate";
     public static final String DATABASE_TABLE_PIC = "table_embeddedPicture";
+    public static final String DATABASE_TABLE_DURATION = "table_duration";
 
     public final static String SHAREDPREFERENCES= "com.mouse.cookie.onemusic.sharedpreference";
     public final static String DATA_S_PATH = "data_s_path";

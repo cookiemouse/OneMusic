@@ -4,21 +4,21 @@ package com.mouse.cookie.onemusic.data;
  * Created by cookie on 17-3-19.
  */
 
-public class FileManagerAdapetrData {
+public class FileManagerAdapterData {
     private boolean isDir;
     private String name;
     private String type;
 
-    public FileManagerAdapetrData(String name) {
+    public FileManagerAdapterData(String name) {
         this.name = name;
     }
 
-    public FileManagerAdapetrData(boolean isDir, String name) {
+    public FileManagerAdapterData(boolean isDir, String name) {
         this.isDir = isDir;
         this.name = name;
     }
 
-    public FileManagerAdapetrData(boolean isDir, String name, String type) {
+    public FileManagerAdapterData(boolean isDir, String name, String type) {
         this.isDir = isDir;
         this.name = name;
         this.type = type;
