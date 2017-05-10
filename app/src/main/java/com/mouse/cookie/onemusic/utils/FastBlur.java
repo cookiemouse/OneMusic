@@ -1,4 +1,4 @@
-package com.mouse.cookie.onemusic;
+package com.mouse.cookie.onemusic.utils;
 
 import android.graphics.Bitmap;
 

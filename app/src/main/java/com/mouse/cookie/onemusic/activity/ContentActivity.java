@@ -22,6 +22,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -31,19 +32,28 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.mouse.cookie.onemusic.R;
 import com.mouse.cookie.onemusic.adapter.MyFragmentPagerAdapter;
 import com.mouse.cookie.onemusic.data.Action;
 import com.mouse.cookie.onemusic.data.Msg;
 import com.mouse.cookie.onemusic.data.Path;
+import com.mouse.cookie.onemusic.databean.LyricContentBean;
+import com.mouse.cookie.onemusic.databean.LyricSearchBean;
 import com.mouse.cookie.onemusic.fragment.LyricFragment;
 import com.mouse.cookie.onemusic.fragment.MusicListFragment;
 import com.mouse.cookie.onemusic.fragment.PlayingFragment;
 import com.mouse.cookie.onemusic.manager.DatabaseManager;
+import com.mouse.cookie.onemusic.network.NetOperator;
 import com.mouse.cookie.onemusic.service.PlayerService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class ContentActivity extends BaseActivity implements View.OnClickListener {
 
@@ -74,6 +84,9 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     private MyHandler myHandler = new MyHandler();
 
     private ProgressBar mProgressBar;
+
+    private NetOperator mNetOperator;
+    private String song;//仅做测试，一定要改
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +143,8 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     //初始化视图
     private void initView() {
         mDatabaseManager = new DatabaseManager(getApplicationContext());
+
+        mNetOperator = NetOperator.getInstance();
 
         mRelativeLayoutBottom = (RelativeLayout) findViewById(R.id.rl_activity_bottom);
 
@@ -282,6 +297,8 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
             mImageViewAblum.setImageBitmap(bitmap);
             mTextViewTitle.setText(title);
             mTextViewArtist.setText(artist);
+
+            song = title;
         }
 
         mButtonPlayOrPause.setSelected(true);
@@ -430,6 +447,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
                     mProgressBar.setProgress(progress);
 
                     mPlayingFragment.updateSeek(progress, duration);
+                    mLyricFragment.updateLrc(progress);
                     break;
                 }
                 case Msg.MSG_ERROR: {
@@ -441,6 +459,12 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
                     updateUI();
                     //更新列表中的播放状态
                     musicListFragment.setPosition(current);
+                    myHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            downloadLyric(song, duration);
+                        }
+                    }, 1000);
                     break;
                 }
                 case Msg.MSG_STOP: {
@@ -485,6 +509,48 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
                 Log.i(TAG, "onClick default");
             }
         }
+    }
+
+    private void downloadLyric(String song, int mills) {
+        mNetOperator.searchLyric(song, mills, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.d(TAG, "onFailure: exception-->" + e);
+                mLyricFragment.setLrc(null);
+                mLyricFragment.setLabel("暂无歌词");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String result = response.body().string();
+                Gson gson = new Gson();
+                LyricSearchBean lyricSearchBean = gson.fromJson(result, LyricSearchBean.class);
+                if (lyricSearchBean.getStatus() == 200) {
+                    mNetOperator.downloadLyric(lyricSearchBean.getProposal()
+                            , lyricSearchBean.getCandidates().get(0).getAccesskey()
+                            , new Callback() {
+                                @Override
+                                public void onFailure(Call call, IOException e) {
+                                    Log.d(TAG, "onFailure: exception-->" + e);
+                                    mLyricFragment.setLrc(null);
+                                    mLyricFragment.setLabel("暂无歌词");
+                                }
+
+                                @Override
+                                public void onResponse(Call call, Response response) throws IOException {
+                                    String result = response.body().string();
+                                    Gson gson = new Gson();
+                                    LyricContentBean lyricContentBean = gson.fromJson(result, LyricContentBean.class);
+                                    String decodedString = new String(Base64.decode(lyricContentBean.getContent(), Base64.DEFAULT));
+                                    mLyricFragment.setLrc(decodedString);
+                                }
+                            });
+                } else {
+                    mLyricFragment.setLrc(null);
+                    mLyricFragment.setLabel("暂无歌词");
+                }
+            }
+        });
     }
 
     //更新Viewpager Adapter
