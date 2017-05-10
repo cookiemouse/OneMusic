@@ -17,6 +17,8 @@ public class Path {
 
     public final static String SHAREDPREFERENCES= "com.mouse.cookie.onemusic.sharedpreference";
     public final static String DATA_S_PATH = "data_s_path";
+    public final static String DATA_S_POSITION = "data_s_position";
     public final static String DATA_S_PROGRESS = "data_s_progress";
+    public final static String DATA_S_DURATION = "data_s_duration";
     public final static String DATA_S_RANDOM = "data_s_random";
 }

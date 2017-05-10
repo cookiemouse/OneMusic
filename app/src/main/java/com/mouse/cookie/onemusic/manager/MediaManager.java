@@ -32,6 +32,8 @@ public class MediaManager {
 
     private boolean isPause;
 
+    private int initProgress;
+
     private PlayListener mPlayListener;
 
     //单例模式
@@ -55,6 +57,11 @@ public class MediaManager {
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+                if (initProgress > 0) {
+                    mediaManager.setProgress(initProgress);
+                    initProgress = 0;
+                    return;
+                }
                 mediaPlayer.start();
                 if (null != mPlayListener) {
                     mPlayListener.onStateChanged(PlayState.Start);
@@ -187,6 +194,10 @@ public class MediaManager {
         } else {
             throw new UnsupportedOperationException("media seekto failure");
         }
+    }
+
+    public void setInitProgress(int ms) {
+        this.initProgress = ms;
     }
 
     public int getProgress() {

@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.mouse.cookie.onemusic.manager.SharedPreferenceManager;
 import com.mouse.cookie.onemusic.utils.FastBlur;
 import com.mouse.cookie.onemusic.R;
 import com.mouse.cookie.onemusic.activity.ContentActivity;
@@ -35,6 +36,8 @@ public class PlayingFragment extends Fragment {
 
     private ContentActivity mContentActivity;
 
+    private SharedPreferenceManager mSharedPreferenceManager;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -47,6 +50,8 @@ public class PlayingFragment extends Fragment {
 
     private void initView(View view) {
         mContentActivity = (ContentActivity) getActivity();
+
+        mSharedPreferenceManager = new SharedPreferenceManager(getContext());
 
         mLinearLayout = (LinearLayout) view.findViewById(R.id.ll_fragment_playing);
         mImageViewIcon = (ImageView) view.findViewById(R.id.iv_fragment_playing_icon);
@@ -96,6 +101,11 @@ public class PlayingFragment extends Fragment {
                 mContentActivity.setPlayProgress(seekBar.getProgress());
             }
         });
+
+        int duration = mSharedPreferenceManager.getDuration();
+        mSeekBar.setMax(duration);
+        mTextViewTotal.setText(formatTime(duration));
+        mSeekBar.setProgress(mSharedPreferenceManager.getProgress());
     }
 
     public void updateSeek(int progress, int duration) {

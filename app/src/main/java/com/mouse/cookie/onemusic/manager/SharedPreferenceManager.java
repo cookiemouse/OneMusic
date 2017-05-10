@@ -28,6 +28,17 @@ public class SharedPreferenceManager {
         return mSharedPreferences.getString(Path.DATA_S_PATH, "");
     }
 
+    //正在播放第几首
+    public void savePosition(int position) {
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putInt(Path.DATA_S_POSITION, position);
+        editor.apply();
+    }
+
+    public int getPosition() {
+        return mSharedPreferences.getInt(Path.DATA_S_POSITION, 0);
+    }
+
     //进度
     public void saveProgress(int progress) {
         SharedPreferences.Editor mEditor = mSharedPreferences.edit();
@@ -37,6 +48,17 @@ public class SharedPreferenceManager {
 
     public int getProgress() {
         return mSharedPreferences.getInt(Path.DATA_S_PROGRESS, 0);
+    }
+
+    //总时长
+    public void saveDuration(int duration) {
+        SharedPreferences.Editor mEditor = mSharedPreferences.edit();
+        mEditor.putInt(Path.DATA_S_DURATION, duration);
+        mEditor.apply();
+    }
+
+    public int getDuration() {
+        return mSharedPreferences.getInt(Path.DATA_S_DURATION, 0);
     }
 
     //是否随机

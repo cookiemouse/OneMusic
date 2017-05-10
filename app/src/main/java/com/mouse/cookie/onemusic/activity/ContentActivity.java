@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -44,6 +45,7 @@ import com.mouse.cookie.onemusic.fragment.LyricFragment;
 import com.mouse.cookie.onemusic.fragment.MusicListFragment;
 import com.mouse.cookie.onemusic.fragment.PlayingFragment;
 import com.mouse.cookie.onemusic.manager.DatabaseManager;
+import com.mouse.cookie.onemusic.manager.SharedPreferenceManager;
 import com.mouse.cookie.onemusic.network.NetOperator;
 import com.mouse.cookie.onemusic.service.PlayerService;
 
@@ -59,7 +61,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
     private final static String TAG = "ContentActivity";
     private final static String PERMISSION_WRITE_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
-//    private final static String PERMISSION_READ_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
+    //    private final static String PERMISSION_READ_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
     private final static int PERMISSION_REQUEST_CODE = 1;
 
     private int duration, progress;
@@ -79,6 +81,8 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     private Button mButtonPlayOrPause, mButtonNext, mButtonUp;
 
     private DatabaseManager mDatabaseManager;
+
+    private SharedPreferenceManager mSharedPreferenceManager;
 
     private PlayerService mPlayerService;
 
@@ -101,23 +105,29 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
     @Override
     protected void onStart() {
-        startService();
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
         bindService();
         registerBroadcast();
         if (null != mPlayerService) {
             current = mPlayerService.getCurrent();
         }
+        current = mSharedPreferenceManager.getPosition();
+        progress = mSharedPreferenceManager.getProgress();
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
         updateUI();
+        mProgressBar.setMax(mSharedPreferenceManager.getDuration());
+        mProgressBar.setProgress(progress);
         super.onResume();
     }
 
     @Override
     protected void onStop() {
+        mSharedPreferenceManager.savePosition(current);
+        mSharedPreferenceManager.saveProgress(progress);
+        mSharedPreferenceManager.saveDuration(duration);
         unbindService(mServiceConnection);
         unregisterReceiver(mBroadcastReceiver);
         super.onStop();
@@ -141,6 +151,8 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     //初始化视图
     private void initView() {
         mDatabaseManager = new DatabaseManager(getApplicationContext());
+
+        mSharedPreferenceManager = new SharedPreferenceManager(getApplicationContext());
 
         mRelativeLayoutBottom = (RelativeLayout) findViewById(R.id.rl_activity_bottom);
 
@@ -229,12 +241,6 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
         });
     }
 
-    //开启服务
-    private void startService() {
-        Intent intent = new Intent(ContentActivity.this, PlayerService.class);
-        startService(intent);
-    }
-
     //关闭服务
     private void stopService() {
         if (null != mPlayerService && !mPlayerService.isPlaying()) {
@@ -279,25 +285,28 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
     //更新底部控件
     private void updateUI() {
-        Cursor cursor = mDatabaseManager.queryAllData();
+//        Cursor cursor = mDatabaseManager.queryAllData();
+//
+//        Bitmap bitmap = null;
+//
+//        Log.d(TAG, "updateUI: current-->" + current + ",progress-->" + progress);
+//        if (current <= cursor.getCount() && cursor.getCount() > 0) {
+//            cursor.move(current + 1);
+//            String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
+//            String artist = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ARTIST));
+//            byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
+//            bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
+//
+//            mImageViewAblum.setImageBitmap(bitmap);
+//            mTextViewTitle.setText(title);
+//            mTextViewArtist.setText(artist);
+//        }
+//
+//        mButtonPlayOrPause.setSelected(true);
+//
+//        mPlayingFragment.updateUI(bitmap);
 
-        Bitmap bitmap = null;
-
-        if (current <= cursor.getCount() && cursor.getCount() > 0) {
-            cursor.move(current + 1);
-            String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
-            String artist = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ARTIST));
-            byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
-            bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
-
-            mImageViewAblum.setImageBitmap(bitmap);
-            mTextViewTitle.setText(title);
-            mTextViewArtist.setText(artist);
-        }
-
-        mButtonPlayOrPause.setSelected(true);
-
-        mPlayingFragment.updateUI(bitmap);
+        new MyAsyncTask().execute();
 
 //        mButtonUp.setClickable(true);
 //        mButtonNext.setClickable(true);
@@ -321,6 +330,8 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.i(TAG, "onServiceConnected");
             mPlayerService = ((PlayerService.MyBinder) service).getService();
+            mPlayerService.setCurrent(current);
+            mPlayerService.setInitProgress(progress);
         }
 
         @Override
@@ -427,6 +438,48 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
         dialog.show();
     }
 
+    private class MyAsyncTask extends AsyncTask {
+
+        @Override
+        protected Object doInBackground(Object[] params) {
+            if (null != mDatabaseManager) {
+                return mDatabaseManager.queryAllData();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+
+            Cursor cursor = (Cursor) o;
+
+            Bitmap bitmap = null;
+
+            Log.d(TAG, "updateUI: current-->" + current + ",progress-->" + progress);
+            Log.d(TAG, "onPostExecute: mPlayerService-->" + mPlayerService);
+            if (current <= cursor.getCount() && cursor.getCount() > 0) {
+                cursor.move(current + 1);
+                String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
+                String artist = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ARTIST));
+                byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
+                bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
+                String duration = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_DURATION));
+                int d = Integer.valueOf(duration);
+
+                mImageViewAblum.setImageBitmap(bitmap);
+                mTextViewTitle.setText(title);
+                mTextViewArtist.setText(artist);
+            }
+
+            if (null != mPlayerService) {
+                mButtonPlayOrPause.setSelected(mPlayerService.isPlaying());
+            }
+
+            mPlayingFragment.updateUI(bitmap);
+//            super.onPostExecute(o);
+        }
+    }
+
     private class MyHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -525,7 +578,13 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
     //调整播放进度
     public void setPlayProgress(int progress) {
-        mPlayerService.setProgress(progress);
+        // TODO: 17-5-11 此处的状态还是不对
+        if (isPlaying()) {
+            mPlayerService.setProgress(progress);
+        } else {
+            mPlayerService.setInitProgress(progress);
+        }
+
     }
 
     //提供当前current

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.WindowManager;
 
 import com.mouse.cookie.onemusic.R;
+import com.mouse.cookie.onemusic.service.PlayerService;
 
 public class GuideActivity extends Activity {
 
@@ -21,6 +22,8 @@ public class GuideActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_guide);
+
+        startService();
 
         mRunnable = new Runnable() {
             @Override
@@ -45,6 +48,12 @@ public class GuideActivity extends Activity {
     @Override
     public void onBackPressed() {
 //        super.onBackPressed();
+    }
+
+    //开启服务
+    private void startService() {
+        Intent intent = new Intent(GuideActivity.this, PlayerService.class);
+        startService(intent);
     }
 
     //跳转

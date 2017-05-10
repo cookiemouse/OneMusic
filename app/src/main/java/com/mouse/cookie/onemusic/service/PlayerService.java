@@ -88,7 +88,7 @@ public class PlayerService extends Service {
                         myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
                         break;
                     }
-                    default:{
+                    default: {
                         Log.d(TAG, "onStatuChanged: default");
                     }
                 }
@@ -272,7 +272,7 @@ public class PlayerService extends Service {
     }
 
     //发送Pause广播
-    private void sendPauseBroadcast(){
+    private void sendPauseBroadcast() {
         Intent intent = new Intent(Action.PAUSE);
         sendBroadcast(intent);
     }
@@ -352,9 +352,17 @@ public class PlayerService extends Service {
         return current;
     }
 
+    public void setCurrent(int current) {
+        this.current = current;
+    }
+
     //待定，要不要退出时再进入，设置保存的进度
     //开放，通过托动进度条来设置进度
     public void setProgress(int progress) {
         mediaManager.setProgress(progress);
+    }
+
+    public void setInitProgress(int progress) {
+        mediaManager.setInitProgress(progress);
     }
 }
