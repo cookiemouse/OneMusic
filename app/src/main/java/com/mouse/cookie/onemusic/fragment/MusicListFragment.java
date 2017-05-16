@@ -19,6 +19,7 @@ import com.mouse.cookie.onemusic.activity.ContentActivity;
 import com.mouse.cookie.onemusic.adapter.MusicListAdapter;
 import com.mouse.cookie.onemusic.data.MusicListAdapterData;
 import com.mouse.cookie.onemusic.data.Path;
+import com.mouse.cookie.onemusic.data.PlayState;
 import com.mouse.cookie.onemusic.manager.DatabaseManager;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class MusicListFragment extends Fragment {
 
     @Override
     public void onResume() {
-        if (mContentActivity.isPlaying()) {
+        if (mContentActivity.getPlayState() == PlayState.Start) {
             setPosition(mContentActivity.getCurrent());
         }
         super.onResume();
@@ -81,7 +82,7 @@ public class MusicListFragment extends Fragment {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (!mContentActivity.isPlaying()) {
+                if (mContentActivity.getPlayState() != PlayState.Start) {
                     setPosition(position);
                     mContentActivity.play(position);
                     return;

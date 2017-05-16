@@ -11,7 +11,7 @@ import java.io.IOException;
 
 /**
  * Created by xp on 17-3-15.
- * 提供对外的方法有setSource、setLoop、isLoog、pause、replay、setProgress、destory
+ * 提供对外的方法有setSource、setLoop、isLoog、pause、replay、setProgress、destroy
  * 对外回调PlayListener==>onCompletion、onStateChanged、onError
  * mediaPlayer.prepare();
  * mediaPlayer.prepareAsync();
@@ -30,7 +30,7 @@ public class MediaManager {
 
     private MediaPlayer mediaPlayer;
 
-    private boolean isPause;
+    private int mPlayState = PlayState.Idle;
 
     private int initProgress;
 
@@ -53,31 +53,35 @@ public class MediaManager {
 
         mediaPlayer = new MediaPlayer();
 
-
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+                mPlayState = PlayState.Start;
+                if (null != mPlayListener) {
+                    mPlayListener.onStateChanged(mPlayState);
+                } else {
+                    throw new UnsupportedOperationException("PlayListener is null");
+                }
+
                 if (initProgress > 0) {
                     mediaManager.setProgress(initProgress);
                     initProgress = 0;
                     return;
                 }
+
                 mediaPlayer.start();
-                if (null != mPlayListener) {
-                    mPlayListener.onStateChanged(PlayState.Start);
-                } else {
-                    throw new UnsupportedOperationException("PalyListener is null");
-                }
             }
         });
 
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
+                mPlayState = PlayState.Stop;
                 if (null != mPlayListener) {
+                    mPlayListener.onStateChanged(mPlayState);
                     mPlayListener.onCompletion();
                 } else {
-                    throw new UnsupportedOperationException("PalyListener is null");
+                    throw new UnsupportedOperationException("PlayListener is null");
                 }
             }
         });
@@ -86,9 +90,11 @@ public class MediaManager {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 if (null != mPlayListener) {
+                    mPlayState = PlayState.Idle;
+                    mPlayListener.onStateChanged(mPlayState);
                     mPlayListener.onError("播放出错！");
                 } else {
-                    throw new UnsupportedOperationException("PalyListener is null");
+                    throw new UnsupportedOperationException("PlayListener is null");
                 }
                 return false;
             }
@@ -97,11 +103,9 @@ public class MediaManager {
         mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
             @Override
             public void onSeekComplete(MediaPlayer mp) {
-                mediaPlayer.start();
-                if (null != mPlayListener) {
-                    mPlayListener.onStateChanged(PlayState.Start);
-                } else {
-                    throw new UnsupportedOperationException("PalyListener is null");
+                Log.d(TAG, "onSeekComplete: progress-->" + mp.getCurrentPosition());
+                if (mPlayState == PlayState.Start) {
+                    mediaPlayer.start();
                 }
             }
         });
@@ -110,8 +114,11 @@ public class MediaManager {
     public void setResource(String path) {
 
         Log.i(TAG, "setSource path");
+        if (null == mediaPlayer) {
+            return;
+        }
+
         //重置
-        pause();
         mediaPlayer.reset();
 
         try {
@@ -127,7 +134,6 @@ public class MediaManager {
     public void setResource(Context context, Uri uri) {
 
         //重置
-        pause();
         mediaPlayer.reset();
 
         try {
@@ -139,12 +145,8 @@ public class MediaManager {
         mediaPlayer.prepareAsync();
     }
 
-    public boolean isPlaying() {
-        return mediaPlayer.isPlaying();
-    }
-
-    public boolean isPause() {
-        return isPause;
+    public int getPlayState() {
+        return mPlayState;
     }
 
     //待定，应该由PlayerService来控制播放模式
@@ -162,25 +164,25 @@ public class MediaManager {
     public void pause() {
         if (null != mediaPlayer && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
-            isPause = true;
+            mPlayState = PlayState.Pause;
 
             if (null != mPlayListener) {
                 mPlayListener.onStateChanged(PlayState.Pause);
             } else {
-                throw new UnsupportedOperationException("PalyListener is null");
+                throw new UnsupportedOperationException("PlayListener is null");
             }
         }
     }
 
     public void replay() {
-        if (null != mediaPlayer && isPause) {
+        if (null != mediaPlayer && !mediaPlayer.isPlaying()) {
             mediaPlayer.start();
-            isPause = false;
+            mPlayState = PlayState.Start;
 
             if (null != mPlayListener) {
-                mPlayListener.onStateChanged(PlayState.Start);
+                mPlayListener.onStateChanged(mPlayState);
             } else {
-                throw new UnsupportedOperationException("PalyListener is null");
+                throw new UnsupportedOperationException("PlayListener is null");
             }
         }
     }
@@ -192,7 +194,7 @@ public class MediaManager {
             }
             mediaPlayer.seekTo(ms);
         } else {
-            throw new UnsupportedOperationException("media seekto failure");
+            throw new UnsupportedOperationException("media seek to failure");
         }
     }
 
@@ -201,13 +203,17 @@ public class MediaManager {
     }
 
     public int getProgress() {
+        if (null == mediaPlayer) {
+            return 0;
+        }
         return mediaPlayer.getCurrentPosition();
     }
 
-    public void destory() {
-        pause();
+    public void destroy() {
+        mediaPlayer.reset();
         mediaPlayer.release();
         mediaPlayer = null;
+        mediaManager = null;
     }
 
     public interface PlayListener {

@@ -1,11 +1,15 @@
 package com.mouse.cookie.onemusic.fragment;
 
 
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +20,9 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.mouse.cookie.onemusic.data.Path;
+import com.mouse.cookie.onemusic.data.PlayState;
+import com.mouse.cookie.onemusic.manager.DatabaseManager;
 import com.mouse.cookie.onemusic.manager.SharedPreferenceManager;
 import com.mouse.cookie.onemusic.utils.FastBlur;
 import com.mouse.cookie.onemusic.R;
@@ -34,7 +41,11 @@ public class PlayingFragment extends Fragment {
     //当seekbar被托动时，不再改变进度
     private boolean isSeeked;
 
+    private int mCurrent;
+
     private ContentActivity mContentActivity;
+
+    private DatabaseManager mDatabaseManager;
 
     private SharedPreferenceManager mSharedPreferenceManager;
 
@@ -48,8 +59,16 @@ public class PlayingFragment extends Fragment {
         return viewPlaying;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        new MyAsyncTask().execute();
+    }
+
     private void initView(View view) {
         mContentActivity = (ContentActivity) getActivity();
+
+        mDatabaseManager = new DatabaseManager(getContext());
 
         mSharedPreferenceManager = new SharedPreferenceManager(getContext());
 
@@ -97,8 +116,8 @@ public class PlayingFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                isSeeked = false;
                 mContentActivity.setPlayProgress(seekBar.getProgress());
+                isSeeked = false;
             }
         });
 
@@ -118,14 +137,18 @@ public class PlayingFragment extends Fragment {
     }
 
     //更新UI
-    public void updateUI(Bitmap bitmap) {
+    public void updateUI(int current) {
+        this.mCurrent = current;
 
         if (null == mButtonPlayOrPause || null == mImageViewIcon) {
             return;
         }
 
-        if (null != bitmap) {
-            mImageViewIcon.setImageBitmap(bitmap);
+        new MyAsyncTask().execute();
+
+        mButtonPlayOrPause.setSelected(true);
+
+//        if (null != bitmap) {
 //            bitmap = FastBlur.doBlur(bitmap, 20, true);
 
 //            mImageViewIcon.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -142,11 +165,9 @@ public class PlayingFragment extends Fragment {
 //                    return true;
 //                }
 //            });
-        }
+//        }
 //        mTextViewTitle.setText(title);
 //        mTextViewArtist.setText(artist);
-
-        mButtonPlayOrPause.setSelected(true);
 
 //        mButtonUp.setClickable(true);
 //        mButtonNext.setClickable(true);
@@ -195,6 +216,37 @@ public class PlayingFragment extends Fragment {
             s_sec = "" + sec;
         }
         return s_min + ":" + s_sec;
+    }
+
+    private class MyAsyncTask extends AsyncTask {
+
+        @Override
+        protected Object doInBackground(Object[] params) {
+            if (null != mDatabaseManager) {
+                return mDatabaseManager.queryAllData();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+
+            Cursor cursor = (Cursor) o;
+
+            Bitmap bitmap = null;
+
+            Log.d(TAG, "updateUI: current-->" + mCurrent);
+            if (mCurrent <= cursor.getCount() && cursor.getCount() > 0) {
+                cursor.move(mCurrent + 1);
+                String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
+                String artist = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_ARTIST));
+                byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
+                bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
+
+                mImageViewIcon.setImageBitmap(bitmap);
+            }
+//            super.onPostExecute(o);
+        }
     }
 
 }

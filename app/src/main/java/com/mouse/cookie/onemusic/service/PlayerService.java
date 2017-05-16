@@ -55,7 +55,7 @@ public class PlayerService extends Service {
             @Override
             public void run() {
                 myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
-                sendStatuBroadcast();
+                sendStateBroadcast();
             }
         };
 
@@ -68,7 +68,6 @@ public class PlayerService extends Service {
         mediaManager.setPlayListener(new MediaManager.PlayListener() {
             @Override
             public void onCompletion() {
-                myHandler.removeCallbacks(mRunnableUpdate);
                 myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
             }
 
@@ -76,7 +75,6 @@ public class PlayerService extends Service {
             public void onStateChanged(int state) {
                 switch (state) {
                     case PlayState.Start: {
-                        myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
                         myHandler.obtainMessage(Msg.MSG_START).sendToTarget();
                         break;
                     }
@@ -89,7 +87,7 @@ public class PlayerService extends Service {
                         break;
                     }
                     default: {
-                        Log.d(TAG, "onStatuChanged: default");
+                        Log.d(TAG, "onStateChanged: default");
                     }
                 }
 
@@ -174,8 +172,7 @@ public class PlayerService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "onDestroy");
-        myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
-        mediaManager.destory();
+        mediaManager.destroy();
         super.onDestroy();
     }
 
@@ -198,14 +195,17 @@ public class PlayerService extends Service {
                     break;
                 }
                 case Msg.MSG_START: {
+                    myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
                     sendStartBroadcast();
                     break;
                 }
                 case Msg.MSG_PAUSE: {
+                    myHandler.removeCallbacks(mRunnableUpdate);
                     sendPauseBroadcast();
                     break;
                 }
                 case Msg.MSG_STOP: {
+                    myHandler.removeCallbacks(mRunnableUpdate);
                     sendStopBroadcast();
                     playNext();
                     break;
@@ -257,7 +257,7 @@ public class PlayerService extends Service {
     }
 
     //发送广播更新播放状态
-    private void sendStatuBroadcast() {
+    private void sendStateBroadcast() {
         Intent intent = new Intent(Action.UPDATE);
         intent.putExtra(Action.UPDATE_PROGRESS, mediaManager.getProgress());
         intent.putExtra(Action.UPDATA_DURATIOn, Integer.valueOf(mediaDataManager.getDuration()));
@@ -296,12 +296,12 @@ public class PlayerService extends Service {
      **/
 
     public void playOrPause() {
-        Log.i(TAG, "paly or pause");
-        if (mediaManager.isPlaying()) {
+        Log.i(TAG, "play or pause");
+        if (getPlayState() == PlayState.Start) {
             mediaManager.pause();
 //            myHandler.obtainMessage(Msg.MSG_WHAT).sendToTarget();
             abandonAudioFocus();
-        } else if (mediaManager.isPause()) {
+        } else if (mediaManager.getPlayState() == PlayState.Pause) {
             applyAudioFocus();
             mediaManager.replay();
 //            myHandler.obtainMessage(Msg.MSG_CYCLE).sendToTarget();
@@ -344,8 +344,11 @@ public class PlayerService extends Service {
         }
     }
 
-    public boolean isPlaying() {
-        return mediaManager.isPlaying();
+    public int getPlayState() {
+        if (null == mediaManager){
+            return PlayState.Idle;
+        }
+        return mediaManager.getPlayState();
     }
 
     public int getCurrent() {

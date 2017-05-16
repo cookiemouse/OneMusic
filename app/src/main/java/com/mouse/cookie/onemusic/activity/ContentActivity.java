@@ -39,6 +39,7 @@ import com.mouse.cookie.onemusic.adapter.MyFragmentPagerAdapter;
 import com.mouse.cookie.onemusic.data.Action;
 import com.mouse.cookie.onemusic.data.Msg;
 import com.mouse.cookie.onemusic.data.Path;
+import com.mouse.cookie.onemusic.data.PlayState;
 import com.mouse.cookie.onemusic.databean.LyricContentBean;
 import com.mouse.cookie.onemusic.databean.LyricSearchBean;
 import com.mouse.cookie.onemusic.fragment.LyricFragment;
@@ -104,23 +105,25 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     }
 
     @Override
-    protected void onStart() {
-        bindService();
-        registerBroadcast();
-        if (null != mPlayerService) {
-            current = mPlayerService.getCurrent();
-        }
-        current = mSharedPreferenceManager.getPosition();
-        progress = mSharedPreferenceManager.getProgress();
-        super.onStart();
-    }
-
-    @Override
     protected void onResume() {
         updateUI();
         mProgressBar.setMax(mSharedPreferenceManager.getDuration());
         mProgressBar.setProgress(progress);
         super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        bindService();
+        registerBroadcast();
+//        if (null != mPlayerService) {
+//            current = mPlayerService.getCurrent();
+//        }
+        current = mSharedPreferenceManager.getPosition();
+        progress = mSharedPreferenceManager.getProgress();
+
+        mPlayingFragment.updateUI(current);
+        super.onStart();
     }
 
     @Override
@@ -141,7 +144,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
     @Override
     public void onBackPressed() {
-        if (null != mPlayerService && mPlayerService.isPlaying()) {
+        if (null != mPlayerService && getPlayState() == PlayState.Start) {
             ContentActivity.this.moveTaskToBack(true);
         } else {
             super.onBackPressed();
@@ -243,7 +246,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
     //关闭服务
     private void stopService() {
-        if (null != mPlayerService && !mPlayerService.isPlaying()) {
+        if (null != mPlayerService && getPlayState() != PlayState.Start) {
             Intent intent = new Intent(ContentActivity.this, PlayerService.class);
             stopService(intent);
         }
@@ -307,6 +310,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 //        mPlayingFragment.updateUI(bitmap);
 
         new MyAsyncTask().execute();
+        mPlayingFragment.updateUI(current);
 
 //        mButtonUp.setClickable(true);
 //        mButtonNext.setClickable(true);
@@ -456,7 +460,6 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
             Bitmap bitmap = null;
 
             Log.d(TAG, "updateUI: current-->" + current + ",progress-->" + progress);
-            Log.d(TAG, "onPostExecute: mPlayerService-->" + mPlayerService);
             if (current <= cursor.getCount() && cursor.getCount() > 0) {
                 cursor.move(current + 1);
                 String title = cursor.getString(cursor.getColumnIndex(Path.DATABASE_TABLE_TITLE));
@@ -471,11 +474,8 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
                 mTextViewArtist.setText(artist);
             }
 
-            if (null != mPlayerService) {
-                mButtonPlayOrPause.setSelected(mPlayerService.isPlaying());
-            }
+            mButtonPlayOrPause.setSelected(getPlayState() == PlayState.Start);
 
-            mPlayingFragment.updateUI(bitmap);
 //            super.onPostExecute(o);
         }
     }
@@ -529,11 +529,7 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
 
                 playOrPause();
 
-                if (isPlaying()) {
-                    mButtonPlayOrPause.setSelected(true);
-                } else {
-                    mButtonPlayOrPause.setSelected(false);
-                }
+                mButtonPlayOrPause.setSelected(getPlayState() == PlayState.Start);
 
 //                openFile();
                 Log.i(TAG, "PlayOrPause Button Click");
@@ -579,12 +575,14 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     //调整播放进度
     public void setPlayProgress(int progress) {
         // TODO: 17-5-11 此处的状态还是不对
-        if (isPlaying()) {
-            mPlayerService.setProgress(progress);
-        } else {
-            mPlayerService.setInitProgress(progress);
+        if (null == mPlayerService) {
+            return;
         }
-
+        if (mPlayerService.getPlayState() == PlayState.Idle) {
+            mPlayerService.setInitProgress(progress);
+            return;
+        }
+        mPlayerService.setProgress(progress);
     }
 
     //提供当前current
@@ -593,7 +591,10 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     }
 
     //提供是否正在播放
-    public boolean isPlaying() {
-        return null != mPlayerService && mPlayerService.isPlaying();
+    public int getPlayState() {
+        if (null == mPlayerService) {
+            return PlayState.Idle;
+        }
+        return mPlayerService.getPlayState();
     }
 }
