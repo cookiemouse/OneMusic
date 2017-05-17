@@ -56,6 +56,7 @@ public class MediaManager {
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+                Log.d(TAG, "onPrepared: initProgress-->" + initProgress);
                 mPlayState = PlayState.Start;
                 if (null != mPlayListener) {
                     mPlayListener.onStateChanged(mPlayState);

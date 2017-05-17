@@ -105,6 +105,23 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     }
 
     @Override
+    protected void onStart() {
+        bindService();
+        registerBroadcast();
+
+
+        if (null != mPlayerService && getPlayState() == PlayState.Start) {
+            current = mPlayerService.getCurrent();
+        } else {
+            current = mSharedPreferenceManager.getPosition();
+            progress = mSharedPreferenceManager.getProgress();
+        }
+
+        mPlayingFragment.updateUI(current);
+        super.onStart();
+    }
+
+    @Override
     protected void onResume() {
         updateUI();
         mProgressBar.setMax(mSharedPreferenceManager.getDuration());
@@ -113,31 +130,17 @@ public class ContentActivity extends BaseActivity implements View.OnClickListene
     }
 
     @Override
-    protected void onStart() {
-        bindService();
-        registerBroadcast();
-//        if (null != mPlayerService) {
-//            current = mPlayerService.getCurrent();
-//        }
-        current = mSharedPreferenceManager.getPosition();
-        progress = mSharedPreferenceManager.getProgress();
-
-        mPlayingFragment.updateUI(current);
-        super.onStart();
-    }
-
-    @Override
     protected void onStop() {
         mSharedPreferenceManager.savePosition(current);
         mSharedPreferenceManager.saveProgress(progress);
         mSharedPreferenceManager.saveDuration(duration);
-        unbindService(mServiceConnection);
-        unregisterReceiver(mBroadcastReceiver);
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
+        unbindService(mServiceConnection);
+        unregisterReceiver(mBroadcastReceiver);
         stopService();
         super.onDestroy();
     }

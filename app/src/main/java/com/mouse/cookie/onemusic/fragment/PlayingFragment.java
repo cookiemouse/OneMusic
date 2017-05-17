@@ -116,6 +116,7 @@ public class PlayingFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.d(TAG, "onStopTrackingTouch: =====================");
                 mContentActivity.setPlayProgress(seekBar.getProgress());
                 isSeeked = false;
             }

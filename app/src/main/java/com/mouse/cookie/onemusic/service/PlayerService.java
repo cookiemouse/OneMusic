@@ -68,7 +68,7 @@ public class PlayerService extends Service {
         mediaManager.setPlayListener(new MediaManager.PlayListener() {
             @Override
             public void onCompletion() {
-                myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
+//                myHandler.obtainMessage(Msg.MSG_STOP).sendToTarget();
             }
 
             @Override
@@ -331,6 +331,7 @@ public class PlayerService extends Service {
     }
 
     public void playNext() {
+        setInitProgress(0);
         if (current < mDatabaseManager.queryAllData().getCount() - 1) {
             current++;
             play(current);
@@ -338,6 +339,7 @@ public class PlayerService extends Service {
     }
 
     public void playUp() {
+        setInitProgress(0);
         if (current > 0) {
             current--;
             play(current);
