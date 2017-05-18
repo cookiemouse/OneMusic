@@ -13,7 +13,7 @@
         android:layout_gravity="center_vertical"
         android:text="@string/seek_default"
         android:textColor="@color/color_Write"
-        android:textSize="@dimen/pt_5"/>
+        android:textSize="@dimen/sp_10"/>
 
     <SeekBar
         android:id="@+id/sb_layout_playing_seek"
@@ -29,6 +29,6 @@
         android:layout_gravity="center_vertical"
         android:text="@string/seek_default"
         android:textColor="@color/color_Write"
-        android:textSize="@dimen/pt_5"/>
+        android:textSize="@dimen/sp_10"/>
 
 </LinearLayout>

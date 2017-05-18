@@ -25,5 +25,5 @@
         android:layout_toEndOf="@+id/iv_adapter_filemanager_icon"
         android:layout_toRightOf="@+id/iv_adapter_filemanager_icon"
         android:text="TextView"
-        android:textSize="@dimen/pt_10"/>
+        android:textSize="@dimen/sp_10"/>
 </RelativeLayout>

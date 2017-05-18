@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OneMusic</string>
+    <string name="app_name">一音</string>
     <string name="app_default">default</string>
     <string name="seek_default">00:00</string>
 
@@ -7,4 +7,6 @@
     <string name="cancle">取消</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="guide_text"> 一首音乐\n\n一段故事</string>
+    <string name="a">一音</string>
 </resources>

@@ -3,7 +3,7 @@
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/dp_64"
-                android:background="@color/colorPrimary">
+                android:background="@color/color_Green">
 
     <ImageView
         android:id="@+id/iv_layout_bottom_icon"
@@ -31,7 +31,7 @@
         android:maxWidth="@dimen/dp_140"
         android:text="@string/app_default"
         android:textColor="@color/color_Black"
-        android:textSize="@dimen/pt_9"/>
+        android:textSize="@dimen/sp_16"/>
 
     <TextView
         android:id="@+id/tv_layout_bottom_name"
@@ -48,7 +48,7 @@
         android:maxWidth="@dimen/dp_140"
         android:text="@string/app_default"
         android:textColor="@color/color_Black"
-        android:textSize="@dimen/pt_8"/>
+        android:textSize="@dimen/sp_14"/>
 
     <ProgressBar
         android:id="@+id/pb_layout_bottom_"

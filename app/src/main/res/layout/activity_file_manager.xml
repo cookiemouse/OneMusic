@@ -25,7 +25,7 @@
         android:lines="1"
         android:padding="@dimen/dp_5"
         android:scrollHorizontally="true"
-        android:textSize="@dimen/pt_10">
+        android:textSize="@dimen/sp_10">
     </TextView>
 
     <ListView

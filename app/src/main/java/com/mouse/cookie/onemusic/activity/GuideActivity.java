@@ -1,27 +1,39 @@
 package com.mouse.cookie.onemusic.activity;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.mouse.cookie.onemusic.R;
 import com.mouse.cookie.onemusic.service.PlayerService;
 
 public class GuideActivity extends Activity {
 
-    private final static int DELAY = 500;
+    private final static int DELAY = 2000;
 
     private MyHandler myHandler = new MyHandler();
     private Runnable mRunnable;
+
+    private TextView mTextViewGuide;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_guide);
+
+        mTextViewGuide = (TextView) findViewById(R.id.tv_activity_guide_1);
+
+        Animator animator = AnimatorInflater.loadAnimator(GuideActivity.this, R.animator.anim_guide);
+        animator.setTarget(mTextViewGuide);
+        animator.start();
 
         startService();
 
