@@ -10,7 +10,7 @@
     <FrameLayout
         android:id="@+id/fl_activity_base_title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/dp_64"
         android:clipToPadding="true"
         android:fitsSystemWindows="true"
         android:background="@color/color_Green">

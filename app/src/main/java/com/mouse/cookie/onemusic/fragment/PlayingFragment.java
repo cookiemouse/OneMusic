@@ -28,12 +28,14 @@ import com.mouse.cookie.onemusic.utils.FastBlur;
 import com.mouse.cookie.onemusic.R;
 import com.mouse.cookie.onemusic.activity.ContentActivity;
 
+import cn.mouse.cookie.cycleview.CycleView;
+
 public class PlayingFragment extends Fragment {
 
     private static final String TAG = "PlayingFragment";
 
     private LinearLayout mLinearLayout;
-    private ImageView mImageViewIcon;
+    private CycleView mCycleViewIcon;
     private Button mButtonPlayOrPause, mButtonUp, mButtonNext;
     private TextView mTextViewCurrent, mTextViewTotal;
     private SeekBar mSeekBar;
@@ -73,7 +75,7 @@ public class PlayingFragment extends Fragment {
         mSharedPreferenceManager = new SharedPreferenceManager(getContext());
 
         mLinearLayout = (LinearLayout) view.findViewById(R.id.ll_fragment_playing);
-        mImageViewIcon = (ImageView) view.findViewById(R.id.iv_fragment_playing_icon);
+        mCycleViewIcon = (CycleView) view.findViewById(R.id.cv_fragment_playing_icon);
         mButtonPlayOrPause = (Button) view.findViewById(R.id.btn_layout_playing_pause_play);
         mButtonNext = (Button) view.findViewById(R.id.btn_layout_playing_next);
         mButtonUp = (Button) view.findViewById(R.id.btn_layout_playing_up);
@@ -141,7 +143,7 @@ public class PlayingFragment extends Fragment {
     public void updateUI(int current) {
         this.mCurrent = current;
 
-        if (null == mButtonPlayOrPause || null == mImageViewIcon) {
+        if (null == mButtonPlayOrPause || null == mCycleViewIcon) {
             return;
         }
 
@@ -244,7 +246,7 @@ public class PlayingFragment extends Fragment {
                 byte[] embeddedPicture = cursor.getBlob(cursor.getColumnIndex(Path.DATABASE_TABLE_PIC));
                 bitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.length);
 
-                mImageViewIcon.setImageBitmap(bitmap);
+                mCycleViewIcon.setImageBitmap(bitmap);
             }
 //            super.onPostExecute(o);
         }
